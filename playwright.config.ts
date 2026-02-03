@@ -20,10 +20,10 @@ export default defineConfig({
   timeout: 30 * 1000,
   retries: 1,
   workers: 4, // run 4 tests in padrallel
-
+  reporter: [['html', { open: 'never' }]],
   use: {
     baseURL: ENV[env].baseURL,
-    headless: false,
+    headless: true,
     screenshot: 'only-on-failure',
     video: 'retain-on-failure'
   },
