@@ -9,8 +9,10 @@ export class CartPage extends BasePage {
         const row = this.rows.filter({ has: this.page.locator('td:nth-child(2)', { hasText: productName }) });
         await row.locator('a', { hasText: 'Delete' }).click();
     }
-    async getTotalPrice() {
-        return await this.page.locator("#totalp").innerText();
+    async getTotalPrice(): Promise<number> {
+    const text = await this.page.locator("#totalp").innerText();
+    const match = text.match(/[\d,.]+/);
+    return match ? Number(match[0].replace(',', '')) : 0;
     }
     async openPlaceOrderModal() {
         await this.page.locator("button", { hasText: "Place Order" }).click();

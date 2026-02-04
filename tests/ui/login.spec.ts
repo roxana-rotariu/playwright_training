@@ -1,4 +1,4 @@
-import { test, expect } from '../../fixtures/pageFixtures';
+import { setup as test, expect } from "../../tests/ui/setup";
 
 test('user can login succesfully', async ({ homePage, loginPage }) => {
   await homePage.gotoHome();

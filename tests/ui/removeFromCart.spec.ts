@@ -1,8 +1,7 @@
-import { test, expect } from '../../fixtures/pageFixtures';
+import { setup as test, expect } from "../../tests/ui/setup";
 
 
 test('remove a product from cart', async ({ homePage, catalogPage, productPage, cartPage }) => {
-    await homePage.gotoHome();
     await catalogPage.filterCategory('Phones')
     await catalogPage.selectedProduct('Nokia lumia 1520');
     await expect(productPage.productTitle).toHaveText('Nokia lumia 1520')

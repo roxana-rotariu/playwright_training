@@ -18,4 +18,10 @@ export class ProductPage extends BasePage {
         //wait for dialog to close
         await this.page.waitForTimeout(1000);
     }
+
+    async getProductPrice(): Promise<number> {
+        const text = await this.productPrice.innerText();
+        const match = text.match(/\d+/); // extracts first number
+        return match ? Number(match[0]) : 0;
+    }
 }

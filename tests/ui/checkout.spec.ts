@@ -1,7 +1,6 @@
-import { test, expect } from '../../fixtures/pageFixtures';
+import { setup as test, expect } from "../../tests/ui/setup";
 
 test('checkout test', async ({ homePage, catalogPage, productPage, cartPage, orderModalPage }) => {
-    await homePage.gotoHome();
     await expect(homePage.categoryPhones).toBeVisible();
     await catalogPage.filterCategory('Phones')
     await catalogPage.selectedProduct('Nokia lumia 1520');

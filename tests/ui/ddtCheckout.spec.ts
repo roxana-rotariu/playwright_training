@@ -1,4 +1,4 @@
-import { test, expect } from "../../fixtures/dataFixtures";
+import { setup as test, expect } from "../../tests/ui/setup";
 import products from "../../test-data/products.json";
 
 test.describe.parallel("Data-driven checkout", () => {
@@ -9,7 +9,6 @@ test.describe.parallel("Data-driven checkout", () => {
             productPage,
             cartPage,
         }) => {
-            await homePage.gotoHome();
             await catalogPage.selectedProduct(product);
             await productPage.addToCart();
             await productPage.expectaddToCartAlert();
@@ -20,14 +19,13 @@ test.describe.parallel("Data-driven checkout", () => {
     });
 });
 
-test.only("checkout", async ({
+test("checkout", async ({
     homePage,
     catalogPage,
     productPage,
     cartPage,
     productName,
 }) => {
-    await homePage.gotoHome();
     await catalogPage.selectedProduct(productName);
     await productPage.addToCart();
     await productPage.expectaddToCartAlert();

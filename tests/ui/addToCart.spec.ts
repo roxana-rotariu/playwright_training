@@ -1,7 +1,7 @@
-import { test, expect } from '../../fixtures/pageFixtures';
+import { setup as test, expect } from "../../tests/ui/setup";
+
 
 test('user can add to cart', async ({ homePage, catalogPage, productPage }) => {
-    await homePage.gotoHome();
     await catalogPage.filterCategory('Laptops');
     await catalogPage.selectedProduct('Sony vaio i5');
     await productPage.expectaddToCartAlert();
