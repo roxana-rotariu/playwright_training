@@ -1,22 +1,24 @@
-// fixtures/pageFixture.ts
 import { test as base, expect } from '@playwright/test';
+
 import { HomePage } from '../pages/HomePage';
 import { CatalogPage } from '../pages/CatalogPage';
 import { ProductPage } from '../pages/ProductPage';
 import { CartPage } from '../pages/CartPage';
 import { OrderModalPage } from '../pages/OrderModalPage';
 import { LoginPage } from '../pages/LoginPage';
+import { CheckoutFlow } from '../flows/CheckoutFlow';
 
-type PageFixtures = {
+export type MyFixtures = {
   homePage: HomePage;
   catalogPage: CatalogPage;
   productPage: ProductPage;
   cartPage: CartPage;
   orderModalPage: OrderModalPage;
   loginPage: LoginPage;
+  checkoutFlow: CheckoutFlow;
 };
 
-export const test = base.extend<PageFixtures>({
+export const test = base.extend<MyFixtures>({
   homePage: async ({ page }, use) => {
     await use(new HomePage(page));
   },
@@ -35,6 +37,25 @@ export const test = base.extend<PageFixtures>({
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page));
   },
+  checkoutFlow: async (
+    { homePage, catalogPage, productPage, cartPage, orderModalPage },
+    use
+  ) => {
+    const flow = new CheckoutFlow(
+      homePage,
+      catalogPage,
+      productPage,
+      cartPage,
+      orderModalPage
+    );
+    await use(flow);
+  },
 });
 
+// ⭐ Global BeforeEach — ensures all UI tests start at Home page
+test.beforeEach(async ({ homePage }) => {
+  await homePage.gotoHome();
+});
+
+// Export expect for unified import style
 export { expect };

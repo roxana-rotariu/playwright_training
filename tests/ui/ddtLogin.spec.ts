@@ -1,14 +1,29 @@
-import { setup as test, expect } from "../../tests/ui/setup";
-import users from '../../test-data/users.json';
+import { test, expect } from "../../fixtures/baseTest";
+import usersJson from "../../test-data/users.json";
 
+type UserLogin = {
+  username: string;
+  password: string;
+};
 
-for (const data of users) {
-	test(`login test for ${data.username}`, async ({
-		homePage,
-		loginPage,
-	}) => {
-		await loginPage.login(data.username, data.password);
+const users = usersJson as UserLogin[];
 
-		await expect(loginPage.welcomeText).toContainText(data.username);
-	});
-}
+test.describe.parallel("Data-driven login tests", () => {
+
+  for (const user of users) {
+
+    test(`login test for ${user.username}`, async ({ loginPage }) => {
+
+      await loginPage.login(user.username, user.password);
+
+      await expect(loginPage.welcomeText).toContainText(`Welcome ${user.username}`);
+    });
+
+  }
+
+  // Ensure each test resets login state
+  test.afterEach(async ({ loginPage }) => {
+    await loginPage.logout();
+  });
+
+});

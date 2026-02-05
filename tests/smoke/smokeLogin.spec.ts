@@ -1,4 +1,4 @@
-import { test, expect } from '../../fixtures/pageFixtures';
+import { test, expect } from "../../fixtures/baseTest";
 
 test('smoke login works', async ({ homePage, loginPage }) => {
   await homePage.gotoHome();

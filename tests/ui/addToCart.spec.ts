@@ -1,10 +1,16 @@
-import { setup as test, expect } from "../../tests/ui/setup";
+import { test, expect } from "../../fixtures/baseTest";
 
+test('user can add a laptop to the cart', async ({ catalogPage, productPage }) => {
 
-test('user can add to cart', async ({ homePage, catalogPage, productPage }) => {
+    // Filter category
     await catalogPage.filterCategory('Laptops');
-    await catalogPage.selectedProduct('Sony vaio i5');
-    await productPage.expectaddToCartAlert();
-    await productPage.addToCart();
+
+    // Select product
+    await catalogPage.selectProduct('Sony vaio i5');
+
+    // Assert product page is correct
     await expect(productPage.productTitle).toHaveText('Sony vaio i5');
+
+    // Add to cart (alert handled inside addToCart)
+    await productPage.addToCart();
 });

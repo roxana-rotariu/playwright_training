@@ -1,35 +1,38 @@
-import { setup as test, expect } from "../../tests/ui/setup";
-import products from "../../test-data/products.json";
+import { test, expect } from "../../fixtures/baseTest";
+import productsJson from "../../test-data/products.json";
+import type { Category } from "../../fixtures/types";
+
+type ProductItem = {
+  name: string;
+  category: Category;
+};
+
+const products = productsJson as ProductItem[];
 
 test.describe.parallel("Data-driven checkout", () => {
-    products.forEach((product) => {
-        test(`checkout with product: ${product}`, async ({
-            homePage,
+    for (const item of products) {
+
+        test(`checkout with product: ${item.name}`, async ({
             catalogPage,
             productPage,
             cartPage,
         }) => {
-            await catalogPage.selectedProduct(product);
+
+            // Select the correct category BEFORE selecting product
+            await catalogPage.filterCategory(item.category);
+
+            // Open product
+            await catalogPage.selectProduct(item.name);
+
+            // Validate the product page is correct
+            await expect(productPage.productTitle).toHaveText(item.name);
+
+            // Add to cart — alert handled inside POM
             await productPage.addToCart();
-            await productPage.expectaddToCartAlert();
 
+            // Go to cart and validate
             await cartPage.gotoCart();
-            await expect(cartPage.rows).toContainText(product);
+            await expect(cartPage.rows).toContainText(item.name);
         });
-    });
-});
-
-test("checkout", async ({
-    homePage,
-    catalogPage,
-    productPage,
-    cartPage,
-    productName,
-}) => {
-    await catalogPage.selectedProduct(productName);
-    await productPage.addToCart();
-    await productPage.expectaddToCartAlert();
-
-    await cartPage.gotoCart();
-    await expect(cartPage.rows).toContainText(productName);
+    }
 });

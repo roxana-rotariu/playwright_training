@@ -1,5 +1,5 @@
 [
-  "Nokia lumia 1520",
-  "Samsung galaxy s6",
-  "Sony vaio i5"
+  { "name": "Nokia lumia 1520", "category": "Phones" },
+  { "name": "Samsung galaxy s6", "category": "Phones" },
+  { "name": "Sony vaio i5", "category": "Laptops" }
 ]

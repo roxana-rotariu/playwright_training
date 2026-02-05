@@ -1,13 +1,26 @@
 import { BasePage } from "./BasePage";
 
 export class HomePage extends BasePage {
-    homeButton = this.page.locator('a.nav-link:has-text("Home")');
+
+    // Navigation Links
+    homeButton = this.page.getByRole('link', { name: 'Home' });
     cartButton = this.page.locator('#cartur');
-    categoryPhones = this.page.locator('a:has-text("Phones")');
-    categoryLaptops = this.page.locator('a:has-text("Laptops")');
-    categoryMonitors = this.page.locator('a:has-text("Monitors")');
+
+    // Categories
+    categoryPhones = this.page.getByRole('link', { name: 'Phones' });
+    categoryLaptops = this.page.getByRole('link', { name: 'Laptops' });
+    categoryMonitors = this.page.getByRole('link', { name: 'Monitors' });
 
     async gotoHome() {
         await this.page.goto('/');
+        await this.page.waitForLoadState('networkidle');  // improves stability
+    }
+
+    async openCart() {
+        await this.cartButton.click();
+    }
+
+    async selectCategory(category: 'Phones' | 'Laptops' | 'Monitors') {
+        await this.page.getByRole('link', { name: category }).click();
     }
 }

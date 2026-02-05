@@ -10,11 +10,14 @@
   "devDependencies": {
     "@playwright/test": "^1.58.1",
     "@types/node": "^25.2.0",
+    "allure-playwright": "^3.4.5",
     "cross-env": "^10.1.0"
   },
   "scripts": {
     "test:dev": "cross-env TEST_ENV=dev npx playwright test",
     "test:stage": "cross-env TEST_ENV=stage npx playwright test",
-    "test:prod": "cross-env TEST_ENV=prod npx playwright test"
+    "test:prod": "cross-env TEST_ENV=prod npx playwright test",
+    "allure:report": "allure generate allure-results --clean -o allure-report",
+    "allure:open": "allure open ./allure-report"
   }
 }

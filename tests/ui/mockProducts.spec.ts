@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { IdHelper } from "../../utils/idHelper";
 
-test.only("mock products list", async ({ page }) => {
+test("mock products list", async ({ page }) => {
     const mockResponse = {
         Items: [
             {
@@ -21,16 +21,12 @@ test.only("mock products list", async ({ page }) => {
                 title: "Mock Phone 2",
             },
         ],
-        // 🔑 REQUIRED or UI won’t render
-        LastEvaluatedKey: { id: `${IdHelper.uniqueId()}`},
+        LastEvaluatedKey: { id: IdHelper.uniqueId() }
     };
 
-    // ✅ EXACT match: GET /entries
-    await page.route("https://api.demoblaze.com/entries", async (route) => {
-        // optional safety check
-        if (route.request().method() !== "GET") {
-            return route.continue();
-        }
+    // Intercept GET /entries
+    await page.route("https://api.demoblaze.com/entries", async (route, request) => {
+        if (request.method() !== "GET") return route.continue();
 
         await route.fulfill({
             status: 200,
@@ -44,6 +40,13 @@ test.only("mock products list", async ({ page }) => {
     });
 
     await page.goto("https://www.demoblaze.com/");
+
+    // Wait for API call to complete
+    await page.waitForResponse(
+        (res) =>
+            res.url() === "https://api.demoblaze.com/entries" &&
+            res.request().method() === "GET"
+    );
 
     const products = page.locator(".hrefch");
 
@@ -60,7 +63,15 @@ test("simulate api failure", async ({ page }) => {
     });
 
     await page.goto("https://www.demoblaze.com/");
-    const products = page.locator(".hrefc");
+
+    // Wait for the failing response
+    await page.waitForResponse(
+        (res) =>
+            res.url() === "https://api.demoblaze.com/entries" &&
+            res.status() === 500
+    );
+
+    const products = page.locator(".hrefch");
 
     await expect(products).toHaveCount(0);
 });

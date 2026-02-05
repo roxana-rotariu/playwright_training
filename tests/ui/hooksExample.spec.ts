@@ -1,38 +1,41 @@
-import { setup as test, expect } from "./setup";
+import { test, expect } from "../../fixtures/baseTest";
+
+const products = [
+    "Nokia lumia 1520",
+    "Samsung galaxy s6"
+];
 
 test.describe("Cart flow", () => {
-    test.beforeEach(async ({ page }) => {
-        await page.goto("/");
-        await page.evaluate(() => localStorage.clear());
-    });
 
-    test("test1", async ({ catalogPage, productPage, cartPage }) => {
-        await catalogPage.selectedProduct("Nokia lumia 1520");
+    for (const product of products) {
+        
+        test(`verify cart total equals product price for: ${product}`, async ({
+            catalogPage,
+            productPage,
+            cartPage
+        }) => {
 
-        await productPage.addToCart();
-        await productPage.expectaddToCartAlert();
-        const productPrice = await productPage.getProductPrice();
+            // Ensure correct category
+            await catalogPage.filterCategory("Phones");
 
-        await cartPage.gotoCart();
-        await expect
-            .poll(async () => {
-                return Number(await cartPage.getTotalPrice());
-            })
-            .toBe(productPrice);
-    });
+            // Open product
+            await catalogPage.selectProduct(product);
 
-    test("test2", async ({ catalogPage, productPage, cartPage }) => {
-        await catalogPage.selectedProduct("Samsung galaxy s6");
+            // Get product price from product page
+            const productPrice = await productPage.getProductPrice();
 
-        await productPage.addToCart();
-        await productPage.expectaddToCartAlert();
-        const productPrice = await  productPage.getProductPrice();
+            // Add to cart — dialog handled inside POM
+            await productPage.addToCart();
 
-        await cartPage.gotoCart();
-        await expect
-            .poll(async () => {
-                return Number(await cartPage.getTotalPrice());
-            })
-            .toBe(productPrice);
-    });
+            // Go to cart
+            await cartPage.gotoCart();
+
+            // Verify cart total matches product price
+            await expect.poll(async () => {
+                return await cartPage.getTotalPrice();
+            }).toBe(productPrice);
+        });
+
+    }
+
 });

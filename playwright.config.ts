@@ -1,41 +1,63 @@
-import { defineConfig, devices } from '@playwright/test';
-import { ENV, EnvName } from './config/environments';
+import { defineConfig } from "@playwright/test";
+import { ENV, EnvName } from "./config/environments";
 
-const env = (process.env.TEST_ENV as EnvName) || 'dev';
+const env = (process.env.TEST_ENV as EnvName) || "dev";
 
+// Validate env name
+const validEnvs: EnvName[] = ['dev', 'stage', 'prod'];
+const envName: EnvName = validEnvs.includes(env) ? env : 'dev';
 
-
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
-
-/**
- * See https://playwright.dev/docs/test-configuration.
- */
 export default defineConfig({
-  timeout: 30 * 1000,
-  retries: 1,
-  workers: 4, // run 4 tests in padrallel
-  reporter: [['html', { open: 'never' }]],
+  // Global test timeout
+  timeout: 60_000,
+
+  // Global run timeout
+  globalTimeout: 10 * 60 * 1000,
+
+  // Test retries (CI only)
+  retries: process.env.CI ? 2 : 0,
+
+  // Worker count
+  workers: process.env.CI ? 2 : undefined,
+
+  // Reporters
+  reporter: [
+    ["html", { open: "never" }],
+    ["allure-playwright"]
+  ],
+
   use: {
-    baseURL: ENV[env].baseURL,
+    // Base URL from environment
+    baseURL: ENV[envName].baseURL,
+
     headless: true,
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure'
+
+    // Timeouts
+    actionTimeout: 10_000,
+    navigationTimeout: 30_000,
+
+    // Debug artifacts
+    screenshot: "only-on-failure",
+    trace: process.env.CI ? "retain-on-failure" : "on-first-retry",
+    video: "retain-on-failure",
+
+    // Additional stability flags
+    ignoreHTTPSErrors: true,
   },
 
+  // Test Projects
   projects: [
     {
-      name: 'smoke',
-      testMatch: ['tests/smoke/*.spec.ts']
+      name: "smoke",
+      testMatch: ["tests/smoke/*.spec.ts"],
     },
     {
-      name: 'ui-regression',
-      testMatch: ['tests/ui/*.spec.ts']
+      name: "ui-regression",
+      testMatch: ["tests/ui/*.spec.ts"],
+    },
+    {
+      name: "api",
+      testMatch: ["tests/api/*.spec.ts"],
     }
   ]
 });
