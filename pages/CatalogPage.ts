@@ -33,8 +33,8 @@ export class CatalogPage extends BasePage {
             }
 
             while (true) {
-                const product = this.page.getByRole("link", {
-                    name: productName,
+               const product = this.page.locator(".hrefch", {
+                    hasText: productName,
                 });
 
                 try {

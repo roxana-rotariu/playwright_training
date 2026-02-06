@@ -1,0 +1,16 @@
+[
+  {
+    "name": "Known Bugs",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*BUG.*"
+  },
+  {
+    "name": "Regression Failures",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*expected.*"
+  },
+  {
+    "name": "Flaky Tests",
+    "matchedStatuses": ["broken"]
+  }
+]

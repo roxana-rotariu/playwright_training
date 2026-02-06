@@ -24,6 +24,9 @@ export default defineConfig({
     reporter: [["html", { open: "never" }], ["allure-playwright"]],
 
     use: {
+        video: "on",
+        trace: "on",
+        screenshot: "on",
         // Base URL from environment
         baseURL: ENV[envName].baseURL,
 
@@ -32,11 +35,6 @@ export default defineConfig({
         // Timeouts
         actionTimeout: 10_000,
         navigationTimeout: 30_000,
-
-        // Debug artifacts
-        screenshot: "only-on-failure",
-        trace: process.env.CI ? "retain-on-failure" : "on-first-retry",
-        video: "retain-on-failure",
 
         // Additional stability flags
         ignoreHTTPSErrors: true,
