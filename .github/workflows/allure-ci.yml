@@ -1,4 +1,4 @@
-name: Playwright UI Tests with Allure Report
+name: Playwright UI Tests with Allure
 
 on:
   push:
@@ -6,68 +6,78 @@ on:
   pull_request:
     branches: [ "main", "master" ]
 
+permissions:
+  contents: write
+
 jobs:
   ui-tests:
     runs-on: ubuntu-latest
 
     steps:
       # ------------------------
-      # Checkout repo
+      # Checkout
       # ------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
       # ------------------------
-      # Setup Node
+      # Node
       # ------------------------
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
       # ------------------------
-      # Install dependencies
+      # Install deps
       # ------------------------
       - name: Install dependencies
         run: npm ci
 
       # ------------------------
-      # Install Playwright browsers
+      # Playwright browsers
       # ------------------------
-      - name: Install Playwright Browsers
+      - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
       # ------------------------
-      # Run Playwright Tests
+      # Run tests (DO NOT FAIL JOB)
       # ------------------------
-      - name: Run Playwright UI Regression
-        run: |
-          npx playwright test --project=ui-regression || true
+      - name: Run UI Regression Tests
+        run: npx playwright test --project=ui-regression
         continue-on-error: true
 
       # ------------------------
-      # Generate Allure HTML Report
+      # DEBUG: verify Allure results
+      # ------------------------
+      - name: Debug Allure results
+        run: |
+          echo "=== allure-results ==="
+          ls -la allure-results || true
+
+      # ------------------------
+      # Generate Allure HTML
       # ------------------------
       - name: Generate Allure Report
         run: |
           npx allure-commandline generate allure-results -o allure-site --clean
 
       # ------------------------
-      # Upload Allure Report to Build Artifacts
+      # VERIFY: fail if report missing
       # ------------------------
-      - name: Upload Allure Report Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-report
-          path: allure-report
+      - name: Verify Allure site
+        run: |
+          test -f allure-site/index.html
+          echo "Allure report generated successfully"
 
       # ------------------------
-      # Publish to GitHub Pages
+      # Deploy to GitHub Pages
       # ------------------------
-      - name: Deploy Allure Report to GitHub Pages
+      - name: Deploy Allure to gh-pages
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: allure-report
+          publish_dir: allure-site
           publish_branch: gh-pages
+          force_orphan: true
