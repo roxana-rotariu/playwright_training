@@ -36,7 +36,7 @@ export class LoginPage extends BasePage {
 
     async openLoginModal() {
         // Always normalize page
-        await this.page.goto("/");
+        await this.ensureHome();
         await expect(this.page.locator("#navbarExample")).toBeVisible();
 
         // Normalize auth state
@@ -102,10 +102,20 @@ export class LoginPage extends BasePage {
     // =========================
     // Signup
     // =========================
+    async ensureHome() {
+        const navbar = this.page.locator("#navbarExample");
 
+        if (!(await navbar.isVisible())) {
+            await this.page.goto("/", {
+                waitUntil: "domcontentloaded",
+                timeout: 15000,
+            });
+            await expect(navbar).toBeVisible();
+        }
+    }
     async openSignupModal() {
         // 🔑 SAME normalization as login
-        await this.page.goto("/");
+        await this.ensureHome();
         await expect(this.page.locator("#navbarExample")).toBeVisible();
 
         if (await this.isLoggedIn()) {
@@ -121,11 +131,7 @@ export class LoginPage extends BasePage {
         await this.openSignupModal();
         await this.signupUsername.fill(username);
         await this.signupPassword.fill(password);
-
-        const dialogPromise = this.page.waitForEvent("dialog");
         await this.signupModalButton.click();
-
-        const dialog = await dialogPromise;
-        expect(dialog.message()).toContain("Sign up successful");
+        // dialog is handled globally
     }
 }
