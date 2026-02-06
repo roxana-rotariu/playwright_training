@@ -23,9 +23,11 @@ export class CheckoutFlow {
   ) {}
 
   async addProductToCart(productName: string) {
+    // Navigate category > product
     await this.catalog.selectProduct(productName);
+
+    // Add to cart — alert handled inside ProductPage.addToCart()
     await this.product.addToCart();
-    await this.product.expectAddToCartAlert();
   }
 
   async completeCheckout(productName: string, orderData: OrderFormData, confirm = true) {

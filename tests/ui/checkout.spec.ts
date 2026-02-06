@@ -1,6 +1,11 @@
 import { test, expect } from '../../fixtures/baseTest';
 import { OrderHelper } from "../../utils/orderHelper";
 
+test.beforeEach(async ({ cartPage }) => {
+  await cartPage.gotoCart();
+  await cartPage.clearCart();
+});
+
 test('can complete checkout for Nokia Lumia 1520 using flow', async ({ checkoutFlow }) => {
   const orderData = OrderHelper.generateOrder();
 

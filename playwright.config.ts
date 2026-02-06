@@ -4,60 +4,64 @@ import { ENV, EnvName } from "./config/environments";
 const env = (process.env.TEST_ENV as EnvName) || "dev";
 
 // Validate env name
-const validEnvs: EnvName[] = ['dev', 'stage', 'prod'];
-const envName: EnvName = validEnvs.includes(env) ? env : 'dev';
+const validEnvs: EnvName[] = ["dev", "stage", "prod"];
+const envName: EnvName = validEnvs.includes(env) ? env : "dev";
 
 export default defineConfig({
-  // Global test timeout
-  timeout: 60_000,
+    // Global test timeout
+    timeout: 60_000,
 
-  // Global run timeout
-  globalTimeout: 10 * 60 * 1000,
+    // Global run timeout
+    globalTimeout: 10 * 60 * 1000,
 
-  // Test retries (CI only)
-  retries: process.env.CI ? 2 : 0,
+    // Test retries (CI only)
+    retries: process.env.CI ? 2 : 0,
 
-  // Worker count
-  workers: process.env.CI ? 2 : undefined,
+    // Worker count
+    workers: process.env.CI ? 2 : undefined,
 
-  // Reporters
-  reporter: [
-    ["html", { open: "never" }],
-    ["allure-playwright"]
-  ],
+    // Reporters
+    reporter: [["html", { open: "never" }], ["allure-playwright"]],
 
-  use: {
-    // Base URL from environment
-    baseURL: ENV[envName].baseURL,
+    use: {
+        // Base URL from environment
+        baseURL: ENV[envName].baseURL,
 
-    headless: true,
+        headless: true,
 
-    // Timeouts
-    actionTimeout: 10_000,
-    navigationTimeout: 30_000,
+        // Timeouts
+        actionTimeout: 10_000,
+        navigationTimeout: 30_000,
 
-    // Debug artifacts
-    screenshot: "only-on-failure",
-    trace: process.env.CI ? "retain-on-failure" : "on-first-retry",
-    video: "retain-on-failure",
+        // Debug artifacts
+        screenshot: "only-on-failure",
+        trace: process.env.CI ? "retain-on-failure" : "on-first-retry",
+        video: "retain-on-failure",
 
-    // Additional stability flags
-    ignoreHTTPSErrors: true,
-  },
-
-  // Test Projects
-  projects: [
-    {
-      name: "smoke",
-      testMatch: ["tests/smoke/*.spec.ts"],
+        // Additional stability flags
+        ignoreHTTPSErrors: true,
     },
-    {
-      name: "ui-regression",
-      testMatch: ["tests/ui/*.spec.ts"],
-    },
-    {
-      name: "api",
-      testMatch: ["tests/api/*.spec.ts"],
-    }
-  ]
+
+    // Test Projects
+    projects: [
+        {
+            name: "smoke",
+            testMatch: ["tests/smoke/*.spec.ts"],
+        },
+        {
+            name: "ui-regression",
+            testMatch: ["tests/ui/*.spec.ts"],
+            grepInvert: /mock/i,
+            workers: 1,
+        },
+        {
+            name: "api",
+            testMatch: ["tests/api/*.spec.ts"],
+        },
+        {
+            name: "mock",
+            testMatch: ["tests/ui/mockProducts.spec.ts"],
+            workers: 1,
+        },
+    ],
 });

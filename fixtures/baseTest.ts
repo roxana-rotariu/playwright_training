@@ -53,9 +53,22 @@ export const test = base.extend<MyFixtures>({
 });
 
 // ⭐ Global BeforeEach — ensures all UI tests start at Home page
-test.beforeEach(async ({ homePage }) => {
-  await homePage.gotoHome();
-});
+test.beforeEach(async ({ page, homePage, loginPage }) => {
+  // 1️⃣ Always auto-accept alerts (Demoblaze is alert-heavy)
+  page.on('dialog', async dialog => {
+    await dialog.accept();
+  });
 
+  // 2️⃣ Always start from a clean home page
+  await homePage.gotoHome();
+
+  // 3️⃣ Wait for navbar (critical)
+  await page.locator('#navbarExample').waitFor({ timeout: 15000 });
+
+  // 4️⃣ If logged in from a previous test → log out
+  if (await loginPage.isLoggedIn()) {
+    await loginPage.logout();
+  }
+});
 // Export expect for unified import style
 export { expect };

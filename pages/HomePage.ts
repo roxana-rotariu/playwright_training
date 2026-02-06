@@ -13,7 +13,7 @@ export class HomePage extends BasePage {
 
     async gotoHome() {
         await this.page.goto('/');
-        await this.page.waitForLoadState('networkidle');  // improves stability
+        //await this.page.waitForLoadState('networkidle');  // improves stability
     }
 
     async openCart() {

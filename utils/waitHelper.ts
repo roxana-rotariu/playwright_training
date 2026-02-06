@@ -15,7 +15,7 @@ export const WaitHelper = {
     },
 
     async waitForNetworkIdle(page: Page, timeout: number = 3000): Promise<void> {
-        await page.waitForLoadState('networkidle', { timeout });
+        //await page.waitForLoadState('networkidle', { timeout });
     },
 
     async waitForUrl(page: Page, urlPart: string, timeout = 5000): Promise<void> {

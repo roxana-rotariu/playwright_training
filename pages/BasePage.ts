@@ -33,7 +33,7 @@ export class BasePage {
 
   // New: wait for stable network
   async waitForNetworkIdle() {
-    await this.page.waitForLoadState('networkidle');
+    //await this.page.waitForLoadState('networkidle');
   }
 
   // New: flexible text expectation

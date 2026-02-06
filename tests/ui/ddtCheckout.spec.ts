@@ -2,36 +2,44 @@ import { test, expect } from "../../fixtures/baseTest";
 import productsJson from "../../test-data/products.json";
 import type { Category } from "../../fixtures/types";
 
-type ProductItem = {
-  name: string;
-  category: Category;
-};
+test.describe("Data-driven checkout", () => {
 
-const products = productsJson as ProductItem[];
+    // test.beforeEach(async ({ page }) => {
+    //     // ⭐ Reset JS context to avoid Demoblaze alert race condition
+    //     await page.reload({ timeout: 30000 });
+    // });
 
-test.describe.parallel("Data-driven checkout", () => {
-    for (const item of products) {
+    for (const item of productsJson as { name: string; category: Category }[]) {
 
         test(`checkout with product: ${item.name}`, async ({
             catalogPage,
             productPage,
             cartPage,
+            homePage
         }) => {
 
-            // Select the correct category BEFORE selecting product
+            await homePage.gotoHome();
+            await catalogPage.waitForCatalog();
+
             await catalogPage.filterCategory(item.category);
 
-            // Open product
+            // Wait for product grid to fully load
+            await expect(catalogPage.page.locator('.hrefch').first())
+              .toBeVisible({ timeout: 15000 });
+
+            // Use pagination-aware product finder
             await catalogPage.selectProduct(item.name);
 
-            // Validate the product page is correct
+            // Validate product page loaded
             await expect(productPage.productTitle).toHaveText(item.name);
 
-            // Add to cart — alert handled inside POM
+            // Add to cart
             await productPage.addToCart();
 
-            // Go to cart and validate
+            // Go to cart
             await cartPage.gotoCart();
+
+            // Validate item in cart
             await expect(cartPage.rows).toContainText(item.name);
         });
     }

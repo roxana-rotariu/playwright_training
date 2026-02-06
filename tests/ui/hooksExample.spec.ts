@@ -12,10 +12,13 @@ test.describe("Cart flow", () => {
         test(`verify cart total equals product price for: ${product}`, async ({
             catalogPage,
             productPage,
-            cartPage
+            cartPage,
+            homePage
         }) => {
 
             // Ensure correct category
+            await homePage.gotoHome();
+            await catalogPage.waitForCatalog();
             await catalogPage.filterCategory("Phones");
 
             // Open product
