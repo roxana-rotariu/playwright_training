@@ -50,7 +50,7 @@ jobs:
       # ------------------------
       - name: Generate Allure Report
         run: |
-          npx allure generate --clean allure-results -o allure-report
+          npx allure-commandline generate allure-results -o allure-site --clean
 
       # ------------------------
       # Upload Allure Report to Build Artifacts

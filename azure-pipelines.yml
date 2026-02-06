@@ -19,7 +19,7 @@ steps:
     displayName: Run Playwright tests
 
   - script: |
-      npx allure generate allure-results -o allure-site --clean
+      npx allure-commandline generate allure-results -o allure-site --clean
     displayName: Generate Allure report
 
   # -----------------------------
