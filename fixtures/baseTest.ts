@@ -53,33 +53,67 @@ export const test = base.extend<MyFixtures>({
     },
 });
 
-// ⭐ Global BeforeEach — ensures all UI tests start at Home page
+/**
+ * ⭐ GLOBAL BEFORE EACH
+ * Ensures every UI test starts in a deterministic, clean, stable state.
+ *
+ * This includes:
+ * - Fresh homepage load
+ * - Navbar init
+ * - Logout if needed
+ * - ⭐ RESET GRID TO PHONES CATEGORY (fixes Samsung flakiness)
+ * - Ensures page=1
+ * - Allows Demoblaze grid re-render cycles
+ */
 test.beforeEach(async ({ page, homePage, loginPage }) => {
-    // 1️⃣ Always auto-accept alerts (Demoblaze is alert-heavy)
-    // page.on("dialog", async (dialog) => {
-    //     await dialog.accept();
-    // });
 
-    // 2️⃣ Always start from a clean home page
+    // 1️⃣ Navigate to clean homepage (component-safe)
     await homePage.gotoHome();
 
-    // 3️⃣ Wait for navbar (critical)
+    // 2️⃣ Ensure navbar is visible (critical)
     await page.locator("#navbarExample").waitFor({ timeout: 15000 });
 
-    // 4️⃣ If logged in from a previous test → log out
+    // 3️⃣ Logout if previous test left user logged in
     if (await loginPage.isLoggedIn()) {
         await loginPage.logout();
     }
+
+    // 4️⃣ ⭐ CRITICAL FIX: Reset Phones category for EVERY TEST
+    const phonesLink = page.getByRole("link", { name: "Phones" });
+
+    await phonesLink.click(); // triggers category load
+
+    // Wait for first product tile
+    const firstTile = page.locator(".hrefch").first();
+    await firstTile.waitFor({ timeout: 15000 });
+
+    // Wait for Demoblaze grid re-render cycles (CI fix)
+    await page.waitForTimeout(300);
+    await page.waitForTimeout(300);
+    await page.waitForTimeout(300);
+
+    // 5️⃣ Ensure we reset to page 1 (pagination fix)
+    const prevBtn = page.locator("#prev2");
+    if (await prevBtn.isVisible().catch(() => false)) {
+        await prevBtn.click();
+        await page.waitForLoadState("domcontentloaded");
+        await page.waitForTimeout(300);
+    }
 });
+
+/**
+ * ⭐ GLOBAL AFTER EACH
+ * Attach Allure artifacts (screenshot, video, trace)
+ */
 test.afterEach(async ({ page }, testInfo) => {
+
     if (testInfo.status !== "passed") {
         await AllureHelper.attachScreenshot(page, testInfo);
     }
 
     await AllureHelper.attachVideo(page, testInfo);
-
     await AllureHelper.attachTrace(testInfo);
 });
 
-// Export expect for unified import style
+// Export expect
 export { expect };

@@ -15,102 +15,64 @@ export class ProductGrid {
   }
 
   // ------------------------------------------------------
-  // Wait until product grid finishes re-rendering
-  // Samsung specifically needs DOM stability!
+  // Wait until product grid loads at least one tile
   // ------------------------------------------------------
-  async waitForGridStability(timeout = 5000) {
-    const start = Date.now();
-    let previousCount = -1;
-
-    while (Date.now() - start < timeout) {
-      const count = await this.productTitles.count();
-
-      if (count === previousCount && count > 0) {
-        // stable tile count
-        return;
-      }
-
-      previousCount = count;
-      await this.page.waitForTimeout(150); // allow re-render cycle
-    }
-
-    throw new Error("Product grid did not stabilize in time.");
-  }
-
   async waitForLoad() {
     await this.productTitles.first().waitFor({ timeout: 15000 });
-    await this.waitForGridStability();
   }
 
   // ------------------------------------------------------
-  // List all product titles on the current page
+  // List product titles in current grid view
   // ------------------------------------------------------
   async listProductNames(): Promise<string[]> {
-    await this.waitForGridStability();
     const count = await this.productTitles.count();
     const titles: string[] = [];
+
     for (let i = 0; i < count; i++) {
       titles.push(await this.productTitles.nth(i).innerText());
     }
+
     return titles;
   }
 
   // ------------------------------------------------------
-  // Select product by name (CI-stable)
+  // Select product by name (supports pagination)
   // ------------------------------------------------------
   async selectProduct(name: string): Promise<void> {
 
-    // Up to 3 pages in Demoblaze
+    // Demoblaze has at most 3 pages for a category
     for (let pageIndex = 0; pageIndex < 3; pageIndex++) {
 
+      // Ensure grid loaded
       await this.waitForLoad();
 
+      // Fresh locator each time (grid redraws often)
       const product = this.page.getByRole("link", { name, exact: true });
 
-      if (await product.isVisible().catch(() => false)) {
-
-        // Try clicking safely up to 3 times
-        for (let attempt = 0; attempt < 3; attempt++) {
+      // Try up to 2 clicks on this page
+      for (let attempt = 0; attempt < 2; attempt++) {
+        if (await product.isVisible().catch(() => false)) {
           try {
             await product.scrollIntoViewIfNeeded();
-            await product.waitFor({ state: "visible", timeout: 3000 });
-
-            // Wait an extra stability window (fix Samsung detach)
-            await this.page.waitForTimeout(150);
-
-            await product.click({ timeout: 5000 });
-            return;
-
-          } catch {
-            await this.page.waitForTimeout(200); // retry click
-          }
-        }
-      }
-
-      // Move to next page only if visible
-      if (await this.nextBtn.isVisible().catch(() => false)) {
-
-        // Ensure next button is stable
-        await this.page.evaluate(() => window.scrollBy(0, 50));
-
-        // Click next with multiple retries for CI
-        for (let i = 0; i < 3; i++) {
-          try {
-            await this.nextBtn.click({ timeout: 3000 });
-            await this.page.waitForLoadState("domcontentloaded");
-            await this.waitForGridStability();
-            break;
+            await product.click();
+            return; // SUCCESS
           } catch {
             await this.page.waitForTimeout(200);
           }
         }
+      }
 
+      // Move to next page (if available)
+      if (await this.nextBtn.isVisible().catch(() => false)) {
+        await this.nextBtn.scrollIntoViewIfNeeded();
+        await this.nextBtn.click();
+        await this.page.waitForLoadState("domcontentloaded");
         continue;
       }
 
       break;
     }
 
-    throw new Error(`Product "${name}" could not be found or clicked (grid instability).`);
+    throw new Error(`Product "${name}" could not be found or clicked.`);
   }
 }
