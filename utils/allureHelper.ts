@@ -49,12 +49,16 @@ export class AllureHelper {
   }
 
   // -----------------------------
-  //  ⭐ ALLURE STEP (legacy API)
+  //  ⭐ ALLURE STEP (GENERIC VERSION — supports return values)
   // -----------------------------
-  static async step(name: string, fn: () => Promise<void>): Promise<void> {
-    return await allure.step(name, async () => {
-      await fn();
+  static async step<T>(name: string, fn: () => Promise<T>): Promise<T> {
+    let result!: T;
+
+    await allure.step(name, async () => {
+      result = await fn();
     });
+
+    return result;
   }
 
   // -----------------------------

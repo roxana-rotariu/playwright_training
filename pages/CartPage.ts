@@ -1,55 +1,60 @@
+import { Page } from "@playwright/test";
 import { BasePage } from "./BasePage";
-import { expect } from "@playwright/test";
+import { CartTable } from "../components/CartTable";
 
 export class CartPage extends BasePage {
 
-    rows = this.page.locator("#tbodyid > tr");
-    totalPrice = this.page.locator("#totalp");
-    placeOrderButton = this.page.getByRole('button', { name: 'Place Order' });
+    table: CartTable;
 
-    async gotoCart(): Promise<void> {
-        await this.page.goto("/cart.html");
-        //await this.page.waitForLoadState('networkidle');
+    constructor(page: Page) {
+        super(page);
+        this.table = new CartTable(page);
     }
 
-    async removeProduct(productName: string): Promise<void> {
-        const row = this.rows.filter({
-            has: this.page.locator('td:nth-child(2)', { hasText: productName })
+    /**
+     * Navigate to the cart page and wait for table to appear.
+     */
+    async gotoCart(): Promise<void> {
+        // Use absolute URL for CI safety
+        await this.page.goto("https://www.demoblaze.com/cart.html", {
+            timeout: 30000
         });
 
-        await expect(row).toHaveCount(1);
-
-        const deleteLink = row.locator('a', { hasText: 'Delete' });
-        await expect(deleteLink).toBeVisible();
-
-        await deleteLink.click();
-
-        // Wait for the product row to disappear
-        await expect(row).toHaveCount(0);
+        await this.table.waitForLoad();
     }
 
+    /**
+     * Remove a specific product by name using CartTable component.
+     */
+    async removeProduct(productName: string): Promise<void> {
+        await this.table.removeItem(productName);
+    }
+
+    /**
+     * Return current cart total.
+     */
     async getTotalPrice(): Promise<number> {
-        await expect(this.totalPrice).toBeVisible();
-
-        const text = await this.totalPrice.innerText();
-        const match = text.match(/[\d,.]+/);
-
-        return match ? Number(match[0].replace(',', '')) : 0;
+        return await this.table.getTotal();
     }
 
+    /**
+     * Clicks the Place Order button
+     */
     async openPlaceOrder(): Promise<void> {
-        await expect(this.placeOrderButton).toBeVisible();
-        await this.placeOrderButton.click();
+        await this.page.getByRole("button", { name: "Place Order" }).click();
     }
 
-    // Highly recommended helper for cleanup
+    /**
+     * Clear the entire cart (useful for cleanup)
+     */
     async clearCart(): Promise<void> {
-        const count = await this.rows.count();
-        for (let i = 0; i < count; i++) {
-            const row = this.rows.nth(0);
-            const deleteLink = row.locator('a', { hasText: 'Delete' });
-            await deleteLink.click();
-            await row.waitFor({ state: 'detached' });
-        }
+        await this.table.clearCart();
+    }
+
+    /**
+     * Make CartPage.rows still available for tests using it
+     */
+    get rows() {
+        return this.table.rows;
     }
 }

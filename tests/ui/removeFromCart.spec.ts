@@ -1,26 +1,16 @@
 import { test, expect } from "../../fixtures/baseTest";
 
-test('remove a product from cart', async ({ catalogPage, productPage, cartPage }) => {
+test("remove a product from cart", async ({ homePage, catalogPage, productPage, cartPage }) => {
 
-    // Filter category first
-    await catalogPage.filterCategory('Phones');
+  await homePage.gotoHome();
 
-    // Choose the product
-    await catalogPage.selectProduct('Nokia lumia 1520');
-    await expect(productPage.productTitle).toHaveText('Nokia lumia 1520');
+  await catalogPage.filterCategory("Phones");
+  await catalogPage.findAndSelectProduct("Nokia lumia 1520");
+  await productPage.addToCart();
 
-    // Add to cart (alert handled internally)
-    await productPage.addToCart();
+  await cartPage.gotoCart();
+  await cartPage.table.expectItem("Nokia lumia 1520");
 
-    // Go to cart
-    await cartPage.gotoCart();
-
-    // Validate product is in the cart
-    await expect(cartPage.rows).toContainText('Nokia lumia 1520');
-
-    // Remove the product
-    await cartPage.removeProduct('Nokia lumia 1520');
-
-    // Validate the cart is empty
-    await expect(cartPage.rows).toHaveCount(0);
+  await cartPage.table.removeItem("Nokia lumia 1520");
+  await cartPage.table.expectEmpty();
 });

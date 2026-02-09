@@ -1,16 +1,16 @@
 import { test, expect } from "../../fixtures/baseTest";
 
-test('user can add a laptop to the cart', async ({ catalogPage, productPage }) => {
+test("user can add a laptop to the cart", async ({ homePage, catalogPage, productPage, cartPage }) => {
 
-    // Filter category
-    await catalogPage.filterCategory('Laptops');
+  await homePage.gotoHome();
 
-    // Select product
-    await catalogPage.selectProduct('Sony vaio i5');
+  await catalogPage.filterCategory("Laptops");
+  await catalogPage.findAndSelectProduct("Sony vaio i5");
 
-    // Assert product page is correct
-    await expect(productPage.productTitle).toHaveText('Sony vaio i5');
+  await productPage.expectProductTitle("Sony vaio i5");
 
-    // Add to cart (alert handled inside addToCart)
-    await productPage.addToCart();
+  await productPage.addToCart();
+
+  await cartPage.gotoCart();
+  await cartPage.table.expectItem("Sony vaio i5");
 });

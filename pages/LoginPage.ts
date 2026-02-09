@@ -2,27 +2,30 @@ import { BasePage } from "./BasePage";
 import { expect } from "@playwright/test";
 
 export class LoginPage extends BasePage {
-    // Locators
+    // Navbar buttons (soon replaced by Navbar component)
     loginButton = this.page.locator("#login2");
     signupButton = this.page.locator("#signin2");
     logoutButton = this.page.locator("#logout2");
 
+    // Login modal
     usernameInput = this.page.locator("#loginusername");
     passwordInput = this.page.locator("#loginpassword");
     modalLoginButton = this.page.getByRole("button", { name: "Log in" });
 
-    welcomeText = this.page.locator("#nameofuser");
-
+    // Signup modal
     signupUsername = this.page.locator("#sign-username");
     signupPassword = this.page.locator("#sign-password");
     signupModalButton = this.page.getByRole("button", { name: "Sign up" });
 
+    // Logged-in indicator
+    welcomeText = this.page.locator("#nameofuser");
+
     // =========================
-    // State helpers
+    // Session Helpers
     // =========================
 
     async isLoggedIn(): Promise<boolean> {
-        return await this.logoutButton.isVisible();
+        return this.logoutButton.isVisible();
     }
 
     async logout() {
@@ -35,63 +38,44 @@ export class LoginPage extends BasePage {
     // =========================
 
     async openLoginModal() {
-        // Always normalize page
-        await this.ensureHome();
-        await expect(this.page.locator("#navbarExample")).toBeVisible();
-
-        // Normalize auth state
-        if (await this.isLoggedIn()) {
-            await this.logout();
-        }
-
+        // Navbar and home already prepared in baseTest
         await expect(this.loginButton).toBeVisible({ timeout: 15000 });
         await this.loginButton.click();
         await expect(this.usernameInput).toBeVisible();
     }
 
     async login(username: string, password: string) {
-        await this.openLoginModal();
-        await this.usernameInput.fill(username);
-        await this.passwordInput.fill(password);
-
-        await this.modalLoginButton.click();
-
-        // 🔑 Race multiple success signals
-        const success = await Promise.race([
-            // 1️⃣ logout button appears
-            this.logoutButton
-                .waitFor({ state: "visible", timeout: 15000 })
-                .then(() => "ui"),
-
-            // 2️⃣ welcome text updated
-            this.welcomeText
-                .filter({ hasText: username })
-                .waitFor({ timeout: 15000 })
-                .then(() => "text"),
-
-            // 3️⃣ dialog appears
-            this.page
-                .waitForEvent("dialog", { timeout: 15000 })
-                .then(async (dialog) => {
-                    const msg = dialog.message();
-                    await dialog.accept();
-                    return msg;
-                }),
-        ]);
-
-        // 🔍 Interpret result
-        if (success === "ui" || success === "text") {
-            return;
+        // Ensure no modal leftover
+        if (await this.isLoggedIn()) {
+            await this.logout();
         }
 
-        if (typeof success === "string") {
-            if (success.includes("Log in successful")) {
-                return;
-            }
-            if (success.includes("User does not exist")) {
-                throw new Error("Login failed: backend not ready after signup");
-            }
-            throw new Error(`Unexpected login dialog: ${success}`);
+        await this.openLoginModal();
+
+        await this.usernameInput.fill(username);
+        await this.passwordInput.fill(password);
+        await this.modalLoginButton.click();
+
+        // Demoblaze sometimes signals login via:
+        // - welcome text
+        // - logout button
+        // - dialog pop-up
+        const outcome = await Promise.race([
+            this.logoutButton.waitFor({ state: "visible", timeout: 15000 }).then(() => "ui"),
+            this.welcomeText.filter({ hasText: username }).waitFor({ timeout: 15000 }).then(() => "text"),
+            this.page.waitForEvent("dialog", { timeout: 15000 }).then(async dialog => {
+                const msg = dialog.message();
+                await dialog.accept();
+                return msg;
+            }),
+        ]);
+
+        if (outcome === "ui" || outcome === "text") return;
+
+        if (typeof outcome === "string") {
+            if (outcome.includes("Log in successful")) return;
+
+            throw new Error(`Unexpected login dialog: ${outcome}`);
         }
     }
 
@@ -102,22 +86,9 @@ export class LoginPage extends BasePage {
     // =========================
     // Signup
     // =========================
-    async ensureHome() {
-        const navbar = this.page.locator("#navbarExample");
 
-        if (!(await navbar.isVisible())) {
-            await this.page.goto("/", {
-                waitUntil: "domcontentloaded",
-                timeout: 15000,
-            });
-            await expect(navbar).toBeVisible();
-        }
-    }
     async openSignupModal() {
-        // 🔑 SAME normalization as login
-        await this.ensureHome();
-        await expect(this.page.locator("#navbarExample")).toBeVisible();
-
+        // Ensure clean session
         if (await this.isLoggedIn()) {
             await this.logout();
         }
@@ -129,9 +100,11 @@ export class LoginPage extends BasePage {
 
     async signup(username: string, password: string) {
         await this.openSignupModal();
+
         await this.signupUsername.fill(username);
         await this.signupPassword.fill(password);
         await this.signupModalButton.click();
-        // dialog is handled globally
+
+        // Success/failure dialog handled globally
     }
 }

@@ -1,26 +1,32 @@
+import { Page } from "@playwright/test";
 import { BasePage } from "./BasePage";
+import { Navbar } from "../components/Navbar";
+import { Sidebar } from "../components/Sidebar";
 
 export class HomePage extends BasePage {
 
-    // Navigation Links
-    homeButton = this.page.getByRole('link', { name: 'Home' });
-    cartButton = this.page.locator('#cartur');
+    navbar: Navbar;
+    sidebar: Sidebar;
 
-    // Categories
-    categoryPhones = this.page.getByRole('link', { name: 'Phones' });
-    categoryLaptops = this.page.getByRole('link', { name: 'Laptops' });
-    categoryMonitors = this.page.getByRole('link', { name: 'Monitors' });
+    constructor(page: Page) {
+        super(page);
+        this.navbar = new Navbar(page);
+        this.sidebar = new Sidebar(page);
+    }
 
     async gotoHome() {
-        await this.page.goto('/');
-        //await this.page.waitForLoadState('networkidle');  // improves stability
-    }
+        // 1️⃣ Navigate to homepage (absolute URL = CI safe)
+        await this.page.goto("https://www.demoblaze.com", {
+            timeout: 30000
+        });
 
-    async openCart() {
-        await this.cartButton.click();
-    }
+        // 2️⃣ Initialize navbar (requires scroll)
+        await this.navbar.waitForLoad();
 
-    async selectCategory(category: 'Phones' | 'Laptops' | 'Monitors') {
-        await this.page.getByRole('link', { name: category }).click();
+        // 3️⃣ Initialize sidebar AFTER navbar loads
+        await this.sidebar.waitForLoad();
+
+        // 4️⃣ Ensure product grid loads correctly
+        await this.page.locator(".hrefch").first().waitFor({ timeout: 20000 });
     }
 }

@@ -56,9 +56,9 @@ export const test = base.extend<MyFixtures>({
 // ⭐ Global BeforeEach — ensures all UI tests start at Home page
 test.beforeEach(async ({ page, homePage, loginPage }) => {
     // 1️⃣ Always auto-accept alerts (Demoblaze is alert-heavy)
-    page.on("dialog", async (dialog) => {
-        await dialog.accept();
-    });
+    // page.on("dialog", async (dialog) => {
+    //     await dialog.accept();
+    // });
 
     // 2️⃣ Always start from a clean home page
     await homePage.gotoHome();

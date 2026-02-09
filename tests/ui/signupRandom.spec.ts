@@ -1,19 +1,14 @@
 import { test, expect } from "../../fixtures/baseTest";
 import { DataHelper } from "../../utils/dataHelper";
 
-test("sign up with random user", async ({ loginPage }) => {
-    const username = DataHelper.randomString(8);
-    const password = DataHelper.randomPassword(10);
+test("sign up with random user", async ({ homePage, loginPage }) => {
 
-    // Sign up (dialog handled inside signup())
-    await loginPage.signup(username, password);
+  await homePage.gotoHome();
 
-    // Login with new credentials
-    await loginPage.login(username, password);
+  const username = DataHelper.randomString(10);
+  const password = DataHelper.randomPassword(10);
 
-    // Verify login success
-    await loginPage.expectLoginSuccess(username);
-
-    // Cleanup
-    await loginPage.logout();
+  await loginPage.signup(username, password);
+  await loginPage.login(username, password);
+  await loginPage.expectLoginSuccess(username);
 });

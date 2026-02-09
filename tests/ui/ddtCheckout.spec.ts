@@ -1,46 +1,25 @@
 import { test, expect } from "../../fixtures/baseTest";
-import productsJson from "../../test-data/products.json";
+import products from "../../test-data/products.json";
+import { OrderHelper } from "../../utils/orderHelper";
 import type { Category } from "../../fixtures/types";
 
 test.describe("Data-driven checkout", () => {
 
-    // test.beforeEach(async ({ page }) => {
-    //     // ⭐ Reset JS context to avoid Demoblaze alert race condition
-    //     await page.reload({ timeout: 30000 });
-    // });
+  for (const item of products) {
 
-    for (const item of productsJson as { name: string; category: Category }[]) {
+    test(`checkout with product: ${item.name}`, async ({ checkoutFlow }) => {
 
-        test(`checkout with product: ${item.name}`, async ({
-            catalogPage,
-            productPage,
-            cartPage,
-            homePage
-        }) => {
+      const orderData = OrderHelper.generateOrder();
 
-            await homePage.gotoHome();
-            await catalogPage.waitForCatalog();
+      const result = await checkoutFlow.completeCheckout(
+        item.category as Category,   // ✅ FIXED
+        item.name,
+        orderData
+      );
 
-            await catalogPage.filterCategory(item.category);
+      expect(result.id).toMatch(/^\d+$/);
+      expect(result.amount).toBeGreaterThan(0);
+    });
 
-            // Wait for product grid to fully load
-            await expect(catalogPage.page.locator('.hrefch').first())
-              .toBeVisible({ timeout: 15000 });
-
-            // Use pagination-aware product finder
-            await catalogPage.selectProduct(item.name);
-
-            // Validate product page loaded
-            await expect(productPage.productTitle).toHaveText(item.name);
-
-            // Add to cart
-            await productPage.addToCart();
-
-            // Go to cart
-            await cartPage.gotoCart();
-
-            // Validate item in cart
-            await expect(cartPage.rows).toContainText(item.name);
-        });
-    }
+  }
 });

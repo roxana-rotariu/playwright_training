@@ -1,46 +1,97 @@
-import { expect } from "@playwright/test";
+import { expect, Page } from "@playwright/test";
 import { BasePage } from "./BasePage";
 
+/**
+ * ProductPage — Stable, component-ready version
+ * Handles:
+ * - Product title & price visibility
+ * - Reliable add-to-cart with double-alert fix
+ * - Product page validation
+ */
 export class ProductPage extends BasePage {
-    productTitle = this.page.locator(".name");
-    productPrice = this.page.locator(".price-container");
-    addToCartButton = this.page.getByRole("link", { name: "Add to cart" });
+    readonly productTitle = this.page.locator(".name");
+    readonly productPrice = this.page.locator(".price-container");
+    readonly addToCartButton = this.page.getByRole("link", {
+        name: "Add to cart",
+    });
 
+    constructor(page: Page) {
+        super(page);
+    }
+
+    // 🔹 Ensure the product page is fully loaded
+    async waitForProductPage() {
+        await this.productTitle.waitFor({ timeout: 15000 });
+        await this.productPrice.waitFor({ timeout: 15000 });
+    }
+
+    /**
+     * 🚀 Stable add-to-cart handler with full alert handling.
+     * Handles:
+     * - Normal Demoblaze alert
+     * - Nokia double-alert bug
+     * - Slow-delayed alert
+     */
     async addToCart(): Promise<void> {
-        // First expected alert
-        const dialog1 = this.page.waitForEvent("dialog");
+        await this.waitForProductPage();
 
-        await this.addToCartButton.click({ noWaitAfter: true });
+        let handled = false;
 
-        // const first = await dialog1;
-        // await first.accept();
-
-        // 🔥 Nokia lumia 1520 BUG: sometimes fires a second alert or delayed dialog
-        // We try to capture it, but DO NOT fail if it's not there.
-        try {
-            const dialog2 = await this.page.waitForEvent("dialog", {
-                timeout: 1000,
+        const dialogPromise = new Promise<void>((resolve) => {
+            this.page.once("dialog", async (dialog) => {
+                if (!handled) {
+                    handled = true;
+                    try {
+                        await dialog.accept();
+                    } catch {}
+                }
+                resolve();
             });
-            await dialog2.accept();
+        });
+
+        await this.addToCartButton.click();
+
+        // Wait for expected alert
+        await dialogPromise;
+
+        // Try to catch an optional 2nd alert (Nokia bug)
+        try {
+            const second = await this.page.waitForEvent("dialog", {
+                timeout: 400,
+            });
+            if (!handled) {
+                handled = true;
+                try {
+                    await second.accept();
+                } catch {}
+            } else {
+                // Already handled first, so safely ignore second
+                try {
+                    await second.dismiss();
+                } catch {}
+            }
         } catch {
-            // No second alert — normal
+            // No second dialog — normal
         }
 
-        // Small stabilization delay
         await this.page.waitForTimeout(200);
     }
 
-    async expectAddToCartAlert(): Promise<void> {
-        const dialogPromise = this.page.waitForEvent("dialog");
-
-        const dialog = await dialogPromise;
-        expect(dialog.message()).toContain("Product added");
-        await dialog.accept();
+    /**
+     * Verify product page loaded with correct product
+     */
+    async expectProductTitle(name: string) {
+        await this.waitForProductPage();
+        await expect(this.productTitle).toHaveText(name);
     }
 
+    /**
+     * Returns numeric product price
+     */
     async getProductPrice(): Promise<number> {
-        const text = await this.productPrice.innerText();
-        const match = text.match(/\d+/);
+        await this.productPrice.waitFor();
+        const raw = await this.productPrice.innerText();
+        const match = raw.match(/\d+/);
         return match ? Number(match[0]) : 0;
     }
 }
