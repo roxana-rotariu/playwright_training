@@ -5,6 +5,12 @@ on:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
+  workflow_dispatch:
+    inputs:
+      update_visual_snapshots:
+        description: "Update @visual snapshots on Linux and commit"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -39,6 +45,26 @@ jobs:
       # ------------------------
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
+
+      # ------------------------
+      # Optional: update visual snapshots (manual)
+      # ------------------------
+      - name: Update visual snapshots
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.update_visual_snapshots == 'true'
+        run: npx playwright test --project=ui-regression --grep "@visual" --update-snapshots
+
+      - name: Commit updated snapshots
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.update_visual_snapshots == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add tests/ui/visuals
+            git commit -m "Update visual snapshots (Linux)"
+            git push
+          else
+            echo "No snapshot changes to commit."
+          fi
 
       # ------------------------
       # Run tests (DO NOT FAIL JOB)
