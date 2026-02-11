@@ -1,13 +1,17 @@
 name: Playwright Tests
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:   # manual trigger → used later for snapshot updates
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
 
 jobs:
+
+  # -------------------------
+  #  REGULAR TEST EXECUTION
+  # -------------------------
   test:
     runs-on: ubuntu-latest
 
@@ -36,3 +40,39 @@ jobs:
         with:
           name: playwright-report
           path: playwright-report/
+
+
+  # -------------------------
+  #  MANUAL SNAPSHOT UPDATE
+  # -------------------------
+  update-snapshots:
+    # Only run this job when manually triggered
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Update Linux Snapshots
+        run: |
+          npx cross-env TEST_ENV=stage npx playwright test --update-snapshots --project=ui-regression
+
+      - name: Commit snapshot updates
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Update Linux snapshots" || echo "No changes to commit"
+          git push
