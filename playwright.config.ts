@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+import path from "path";
 import { ENV, EnvName } from "./config/environments";
 
 const env = (process.env.TEST_ENV as EnvName) || "dev";
@@ -6,6 +7,8 @@ const env = (process.env.TEST_ENV as EnvName) || "dev";
 // Validate env name
 const validEnvs: EnvName[] = ["dev", "stage", "prod"];
 const envName: EnvName = validEnvs.includes(env) ? env : "dev";
+const runId = process.env.PW_RUN_ID || `run-${process.pid}`;
+const outputDir = process.env.PW_OUTPUT_DIR || path.join("test-results", runId);
 
 export default defineConfig({
     // Global test timeout
@@ -22,6 +25,7 @@ export default defineConfig({
 
     // Reporters
     reporter: [["html", { open: "never" }], ["allure-playwright"]],
+    outputDir,
 
     use: {
         video: "on",

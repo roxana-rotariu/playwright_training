@@ -16,9 +16,7 @@ export class HomePage extends BasePage {
 
     async gotoHome() {
         // 1️⃣ Navigate to homepage (absolute URL = CI safe)
-        await this.page.goto("https://www.demoblaze.com", {
-            timeout: 30000
-        });
+        await this.page.goto("/", { timeout: 30000 });
 
         // 2️⃣ Initialize navbar (requires scroll)
         await this.navbar.waitForLoad();
@@ -27,6 +25,8 @@ export class HomePage extends BasePage {
         await this.sidebar.waitForLoad();
 
         // 4️⃣ Ensure product grid loads correctly
-        await this.page.locator(".hrefch").first().waitFor({ timeout: 20000 });
+        await this.retry(async () => {
+            await this.page.locator(".hrefch").first().waitFor({ timeout: 20000 });
+        });
     }
 }

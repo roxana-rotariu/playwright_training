@@ -45,7 +45,7 @@ export class ProductGrid {
             const product = this.productTitles.filter({ hasText: productName });
 
             if ((await product.count()) > 0) {
-                await product.first().click();
+                await this.clickProduct(productName);
                 return;
             }
 
@@ -65,10 +65,20 @@ export class ProductGrid {
 
             await this.nextBtn.click();
 
-            // Wait for catalog to refresh
-            await this.page.waitForLoadState("networkidle");
+            // Wait for catalog to refresh (avoid networkidle on Demoblaze)
+            await this.page.waitForLoadState("domcontentloaded");
+            await this.productTitles.first().waitFor({ timeout: 15000 });
         }
 
         throw new Error(`Product not found in catalog: ${productName}`);
+    }
+
+    /**
+     * Click a product tile and wait for product page shell to load.
+     */
+    async clickProduct(productName: string): Promise<void> {
+        const product = this.productTitles.filter({ hasText: productName });
+        await product.first().click();
+        await this.page.waitForLoadState("domcontentloaded");
     }
 }

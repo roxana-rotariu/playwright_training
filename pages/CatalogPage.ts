@@ -20,7 +20,11 @@ export class CatalogPage extends BasePage {
      */
     async filterCategory(category: Category) {
         await this.sidebar.select(category);
-        await this.grid.waitForLoad();
+        if (typeof this.grid?.waitForLoad === "function") {
+            await this.grid.waitForLoad();
+        } else {
+            await this.page.locator(".hrefch").first().waitFor({ timeout: 15000 });
+        }
     }
 
     /**

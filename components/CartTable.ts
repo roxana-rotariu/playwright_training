@@ -5,12 +5,15 @@ export class CartTable {
   readonly page: Page;
 
   // Table root
+  readonly tableBody: Locator;
   readonly rows: Locator;
   readonly deleteLinks: Locator;
   readonly total: Locator;
 
   constructor(page: Page) {
     this.page = page;
+
+    this.tableBody = page.locator("#tbodyid");
 
     // Cart table rows
     this.rows = page.locator("#tbodyid > tr");
@@ -26,7 +29,10 @@ export class CartTable {
   // Wait until cart is visible
   // ---------------------------
   async waitForLoad() {
-    await this.rows.first().waitFor({ timeout: 15000 }).catch(() => {});
+    await this.tableBody.waitFor({ state: "attached", timeout: 15000 });
+    if ((await this.rows.count()) > 0) {
+      await this.rows.first().waitFor({ timeout: 15000 });
+    }
   }
 
   // ---------------------------
@@ -48,6 +54,12 @@ export class CartTable {
   // Returns cart total
   // ---------------------------
   async getTotal(): Promise<number> {
+    await expect.poll(async () => {
+      const count = await this.rows.count();
+      const text = await this.total.innerText();
+      const value = Number(text || "0");
+      return count > 0 ? value : 0;
+    }, { timeout: 15000 }).toBeGreaterThan(0);
     const text = await this.total.innerText();
     return Number(text);
   }
@@ -78,10 +90,9 @@ export class CartTable {
   // Remove ALL products
   // ---------------------------
   async clearCart() {
-    const count = await this.rows.count();
-
-    for (let i = 0; i < count; i++) {
-      await this.deleteLinks.nth(i).click().catch(() => {});
+    // Re-evaluate rows after each delete to avoid index drift
+    while (await this.rows.count()) {
+      await this.deleteLinks.first().click().catch(() => {});
       await this.page.waitForTimeout(200);
     }
   }
@@ -90,8 +101,7 @@ export class CartTable {
   // Assert an item is present
   // ---------------------------
   async expectItem(name: string) {
-    const items = await this.listItems();
-    expect(items).toContain(name);
+    await expect.poll(async () => this.listItems(), { timeout: 15000 }).toContain(name);
   }
 
   // ---------------------------

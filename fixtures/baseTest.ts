@@ -1,4 +1,4 @@
-import { test as base, expect } from "@playwright/test";
+import { test as base, expect, request as apiRequest } from "@playwright/test";
 
 import { HomePage } from "../pages/HomePage";
 import { CatalogPage } from "../pages/CatalogPage";
@@ -23,8 +23,12 @@ export type MyFixtures = {
 
 export const test = base.extend<MyFixtures>({
     apiClient: async ({ request }, use) => {
-        const client = new DemoblazeClient(request);
+        const context = await apiRequest.newContext({
+            timeout: 30_000,
+        });
+        const client = new DemoblazeClient(context);
         await use(client);
+        await context.dispose();
     },
     homePage: async ({ page }, use) => {
         await use(new HomePage(page));
@@ -90,16 +94,24 @@ test.beforeEach(async ({ page, homePage, loginPage }) => {
 
     // Wait for first product tile
     const firstTile = page.locator(".hrefch").first();
-    await firstTile.waitFor({ timeout: 15000 });
+    try {
+        await firstTile.waitFor({ timeout: 20000 });
+    } catch {
+        if (page.isClosed()) return;
+        await page.reload();
+        await phonesLink.click();
+        await firstTile.waitFor({ timeout: 20000 });
+    }
 
     // Wait for Demoblaze grid re-render cycles (CI fix)
+    if (page.isClosed()) return;
     await page.waitForTimeout(300);
     await page.waitForTimeout(300);
     await page.waitForTimeout(300);
 
     // 5️⃣ Ensure we reset to page 1 (pagination fix)
     const prevBtn = page.locator("#prev2");
-    if (await prevBtn.isVisible().catch(() => false)) {
+    if (!page.isClosed() && await prevBtn.isVisible().catch(() => false)) {
         await prevBtn.click();
         await page.waitForLoadState("domcontentloaded");
         await page.waitForTimeout(300);

@@ -1,5 +1,6 @@
 import { test, expect } from "../../fixtures/baseTest";
 import users from "../../test-data/users.json";
+import { AllureHelper } from "../../utils/allureHelper";
 
 test.describe("Data-driven login tests", () => {
 
@@ -7,11 +8,22 @@ test.describe("Data-driven login tests", () => {
 
     test(`login test for ${user.username}`, async ({ homePage, loginPage }) => {
 
-      await homePage.gotoHome();
+      AllureHelper.epic("User Management");
+      AllureHelper.feature("Login");
+      AllureHelper.story(`Login for ${user.username}`);
+      AllureHelper.severity("critical");
 
-      await loginPage.login(user.username, user.password);
+      await AllureHelper.step("Navigate to homepage", async () => {
+        await homePage.gotoHome();
+      });
 
-      await loginPage.expectLoginSuccess(user.username);
+      await AllureHelper.step("Login with credentials", async () => {
+        await loginPage.login(user.username, user.password);
+      });
+
+      await AllureHelper.step("Verify user is logged in", async () => {
+        await loginPage.expectLoginSuccess(user.username);
+      });
     });
   }
 });

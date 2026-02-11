@@ -64,21 +64,33 @@ export class OrderModalPage extends BasePage {
 
         await this.purchaseBtn.click();
 
-        // 1️⃣ Wait for success title
+        // 1?????? Wait for success title
         await this.confirmationTitle.waitFor({ timeout: 15000 });
 
-        // 2️⃣ The success text block is the next <p> element
+        // 2?????? The success text block is the next <p> element
         const infoLocator = this.confirmationTitle.locator("xpath=following-sibling::p[1]");
         await expect(infoLocator).toBeVisible();
 
-        const infoText = await infoLocator.innerText();
+        const deadline = Date.now() + 15000;
+        let id = "";
+        let amount = 0;
 
-        // 3️⃣ Extract values via regex (handles various whitespace formats)
-        const idMatch = infoText.match(/Id:\s*(\d+)/i);
-        const amountMatch = infoText.match(/Amount:\s*(\d+)/i);
+        while (Date.now() < deadline) {
+            const infoText = await infoLocator.innerText();
 
-        const id = idMatch ? idMatch[1] : "";
-        const amount = amountMatch ? Number(amountMatch[1]) : 0;
+            // 3?????? Extract values via regex (handles various whitespace formats)
+            const idMatch = infoText.match(/Id:\s*(\d+)/i);
+            const amountMatch = infoText.match(/Amount:\s*(\d+)/i);
+
+            id = idMatch ? idMatch[1] : "";
+            amount = amountMatch ? Number(amountMatch[1]) : 0;
+
+            if (id && amount > 0) {
+                break;
+            }
+
+            await this.page.waitForTimeout(500);
+        }
 
         return { id, amount };
     }

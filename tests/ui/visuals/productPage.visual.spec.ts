@@ -1,4 +1,5 @@
 import { test, expect } from "../../../fixtures/baseTest";
+import { AllureHelper } from "../../../utils/allureHelper";
 
 test.describe("Visual Regression – Product Page", () => {
 
@@ -9,24 +10,37 @@ test.describe("Visual Regression – Product Page", () => {
     productPage
   }) => {
 
-    await homePage.gotoHome();
+    AllureHelper.epic("Visual Regression");
+    AllureHelper.feature("Product Page");
+    AllureHelper.story("Samsung product page snapshot");
+    AllureHelper.severity("minor");
 
-    await page.setViewportSize({ width: 1280, height: 800 });
+    await AllureHelper.step("Navigate to homepage", async () => {
+      await homePage.gotoHome();
+    });
 
-    // Find and open Samsung product
-    await catalogPage.findAndSelectProduct("Samsung galaxy s6");
+    await AllureHelper.step("Set viewport size", async () => {
+      await page.setViewportSize({ width: 1280, height: 800 });
+    });
 
-    await productPage.waitForProductPage();
+    await AllureHelper.step("Open product page", async () => {
+      await catalogPage.findAndSelectProduct("Samsung galaxy s6");
+      await productPage.waitForProductPage();
+    });
 
     // Mask footer (dynamic)
     const mask = [
       page.locator("footer")
     ];
 
-    await page.waitForTimeout(200);
+    await AllureHelper.step("Stabilize layout", async () => {
+      await page.waitForTimeout(200);
+    });
 
-    expect(await page.screenshot({ mask }))
-      .toMatchSnapshot("product-samsung.png");
+    await AllureHelper.step("Capture snapshot", async () => {
+      expect(await page.screenshot({ mask }))
+        .toMatchSnapshot("product-samsung.png");
+    });
   });
 
 });

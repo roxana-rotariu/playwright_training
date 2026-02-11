@@ -1,25 +1,39 @@
 import { test, expect } from "../../fixtures/apiTest";
+import { AllureHelper } from "../../utils/allureHelper";
 
 test.describe("Products API", () => {
 
   test("GET /entries returns product list", async ({ api }) => {
-    const response = await api.get("https://api.demoblaze.com/entries");
+    AllureHelper.epic("API");
+    AllureHelper.feature("Products API");
+    AllureHelper.story("Fetch products list");
+    AllureHelper.severity("normal");
 
-    expect(response.status()).toBe(200);
+    const response = await AllureHelper.step("Send products request", async () => {
+      return await api.get("https://api.demoblaze.com/entries");
+    });
 
-    const json = await response.json();
+    await AllureHelper.step("Verify response status", async () => {
+      expect(response.status()).toBe(200);
+    });
+
+    const json = await AllureHelper.step("Parse response body", async () => {
+      return await response.json();
+    });
 
     // Demoblaze always returns Items array (but may be empty)
-    expect(json).toHaveProperty("Items");
+    await AllureHelper.step("Validate response structure", async () => {
+      expect(json).toHaveProperty("Items");
 
-    // Items should be an array
-    expect(Array.isArray(json.Items)).toBe(true);
+      // Items should be an array
+      expect(Array.isArray(json.Items)).toBe(true);
 
-    // Validate at least product structure if array is not empty
-    if (json.Items.length > 0) {
-      expect(json.Items[0]).toHaveProperty("title");
-      expect(json.Items[0]).toHaveProperty("price");
-    }
+      // Validate at least product structure if array is not empty
+      if (json.Items.length > 0) {
+        expect(json.Items[0]).toHaveProperty("title");
+        expect(json.Items[0]).toHaveProperty("price");
+      }
+    });
   });
 
 });

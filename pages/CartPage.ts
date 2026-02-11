@@ -15,10 +15,8 @@ export class CartPage extends BasePage {
      * Navigate to the cart page and wait for table to appear.
      */
     async gotoCart(): Promise<void> {
-        // Use absolute URL for CI safety
-        await this.page.goto("https://www.demoblaze.com/cart.html", {
-            timeout: 30000
-        });
+        // Use baseURL for CI safety
+        await this.page.goto("/cart.html", { timeout: 30000 });
 
         await this.table.waitForLoad();
     }

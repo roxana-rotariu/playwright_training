@@ -27,7 +27,7 @@ export class BasePage {
   }
 
   async gotoHome() {
-    await this.gotoAbsolute("https://www.demoblaze.com");
+    await this.page.goto("/", { timeout: 30000 });
   }
 
   // -------------------------------------------------

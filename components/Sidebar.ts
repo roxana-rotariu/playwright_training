@@ -35,6 +35,7 @@ export class Sidebar {
   // ---------------------------
 
   async waitForLoad() {
+    await this.page.waitForLoadState("domcontentloaded");
     await this.root.waitFor({ timeout: 15000 });
   }
 

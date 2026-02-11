@@ -1,3 +1,4 @@
+import { expect } from "@playwright/test";
 import { HomePage } from "../pages/HomePage";
 import { CatalogPage } from "../pages/CatalogPage";
 import { ProductPage } from "../pages/ProductPage";
@@ -68,6 +69,12 @@ export class CheckoutFlow {
     // Proceed to cart
     await AllureHelper.step("Open Cart", async () => {
       await this.cart.gotoCart();
+    });
+
+    await AllureHelper.step("Wait for cart total", async () => {
+      await expect
+        .poll(() => this.cart.getTotalPrice(), { timeout: 15000 })
+        .toBeGreaterThan(0);
     });
 
     await AllureHelper.step("Open Place Order modal", async () => {

@@ -1,15 +1,27 @@
 import { test, expect } from "../../../fixtures/baseTest";
+import { AllureHelper } from "../../../utils/allureHelper";
 
 test.describe("Visual Regression – Cart Page", () => {
 
   test("empty cart snapshot @visual", async ({ page, homePage, cartPage }) => {
 
-    await homePage.gotoHome();
+    AllureHelper.epic("Visual Regression");
+    AllureHelper.feature("Cart Page");
+    AllureHelper.story("Empty cart snapshot");
+    AllureHelper.severity("minor");
 
-    await cartPage.gotoCart();
-    await cartPage.table.waitForLoad();
+    await AllureHelper.step("Navigate to homepage", async () => {
+      await homePage.gotoHome();
+    });
 
-    expect(await page.screenshot()).toMatchSnapshot("empty-cart.png");
+    await AllureHelper.step("Open cart page", async () => {
+      await cartPage.gotoCart();
+      await cartPage.table.waitForLoad();
+    });
+
+    await AllureHelper.step("Capture snapshot", async () => {
+      expect(await page.screenshot()).toMatchSnapshot("empty-cart.png");
+    });
   });
 
   test("cart with Samsung snapshot @visual", async ({
@@ -20,15 +32,28 @@ test.describe("Visual Regression – Cart Page", () => {
     page,
   }) => {
 
-    await homePage.gotoHome();
+    AllureHelper.epic("Visual Regression");
+    AllureHelper.feature("Cart Page");
+    AllureHelper.story("Cart with product snapshot");
+    AllureHelper.severity("minor");
 
-    await catalogPage.findAndSelectProduct("Samsung galaxy s6");
-    await productPage.addToCart();
+    await AllureHelper.step("Navigate to homepage", async () => {
+      await homePage.gotoHome();
+    });
 
-    await cartPage.gotoCart();
+    await AllureHelper.step("Add product to cart", async () => {
+      await catalogPage.findAndSelectProduct("Samsung galaxy s6");
+      await productPage.addToCart();
+    });
 
-    expect(await page.screenshot())
-      .toMatchSnapshot("cart-with-samsung.png");
+    await AllureHelper.step("Open cart page", async () => {
+      await cartPage.gotoCart();
+    });
+
+    await AllureHelper.step("Capture snapshot", async () => {
+      expect(await page.screenshot())
+        .toMatchSnapshot("cart-with-samsung.png");
+    });
   });
 
 });

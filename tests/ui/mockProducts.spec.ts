@@ -1,9 +1,15 @@
 import { test, expect } from "@playwright/test";
 import { IdHelper } from "../../utils/idHelper";
+import { AllureHelper } from "../../utils/allureHelper";
 
 test.describe("Mocked Products API", () => {
 
   test("mock products list", async ({ page }) => {
+
+    AllureHelper.epic("Mocking");
+    AllureHelper.feature("Mocked products API");
+    AllureHelper.story("Render catalog using mocked product list");
+    AllureHelper.severity("normal");
 
     const mockResponse = {
       Items: [
@@ -27,64 +33,75 @@ test.describe("Mocked Products API", () => {
       LastEvaluatedKey: { id: IdHelper.uniqueId() }
     };
 
-    // 🎯 Intercept GET /entries (product listing)
-    await page.route("https://api.demoblaze.com/entries", async (route, request) => {
-      if (request.method() !== "GET") {
-        return route.continue();
-      }
+    await AllureHelper.step("Mock products API response", async () => {
+      await page.route("https://api.demoblaze.com/entries", async (route, request) => {
+        if (request.method() !== "GET") {
+          return route.continue();
+        }
 
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        headers: {
-          "access-control-allow-origin": "*",
-          "access-control-allow-credentials": "true",
-        },
-        body: JSON.stringify(mockResponse),
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          headers: {
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+          },
+          body: JSON.stringify(mockResponse),
+        });
       });
     });
 
-    // Load homepage using absolute URL (CI safe)
-    await page.goto("https://www.demoblaze.com/");
-
-    // Wait for the API call to complete
-    await page.waitForResponse(
-      (res) =>
-        res.url() === "https://api.demoblaze.com/entries" &&
-        res.request().method() === "GET"
-    );
+    await AllureHelper.step("Open homepage", async () => {
+      const responsePromise = page.waitForResponse(
+        (res) =>
+          res.url() === "https://api.demoblaze.com/entries" &&
+          res.request().method() === "GET"
+      );
+      await page.goto("https://www.demoblaze.com/");
+      await responsePromise;
+    });
 
     // Assert product titles shown in the UI
     const products = page.locator(".hrefch");
 
-    await expect(products).toHaveCount(2);
-    await expect(products).toHaveText(["Mock Phone 1", "Mock Phone 2"]);
+    await AllureHelper.step("Verify mocked products in UI", async () => {
+      await expect(products).toHaveCount(2);
+      await expect(products).toHaveText(["Mock Phone 1", "Mock Phone 2"]);
+    });
   });
 
   test("simulate API failure", async ({ page }) => {
 
-    // Mock failing API response
-    await page.route("https://api.demoblaze.com/entries", async (route) => {
-      await route.fulfill({
-        status: 500,
-        contentType: "application/json",
-        body: JSON.stringify({ error: "Server error" }),
+    AllureHelper.epic("Mocking");
+    AllureHelper.feature("Mocked products API");
+    AllureHelper.story("Handle products API failure");
+    AllureHelper.severity("normal");
+
+    await AllureHelper.step("Mock products API failure", async () => {
+      await page.route("https://api.demoblaze.com/entries", async (route) => {
+        await route.fulfill({
+          status: 500,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "Server error" }),
+        });
       });
     });
 
-    await page.goto("https://www.demoblaze.com/");
-
-    // Wait for the mocked response
-    await page.waitForResponse(
-      (res) =>
-        res.url() === "https://api.demoblaze.com/entries" &&
-        res.status() === 500
-    );
+    await AllureHelper.step("Open homepage", async () => {
+      const responsePromise = page.waitForResponse(
+        (res) =>
+          res.url() === "https://api.demoblaze.com/entries" &&
+          res.status() === 500
+      );
+      await page.goto("https://www.demoblaze.com/");
+      await responsePromise;
+    });
 
     const products = page.locator(".hrefch");
 
-    // No products should be shown on failure
-    await expect(products).toHaveCount(0);
+    await AllureHelper.step("Verify no products are rendered", async () => {
+      await expect(products).toHaveCount(0);
+    });
   });
 
 });

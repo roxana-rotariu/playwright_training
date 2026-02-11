@@ -37,6 +37,16 @@ export class ProductPage extends BasePage {
 
         let handled = false;
 
+        const addToCartResponse = this.page
+            .waitForResponse(
+                (res) =>
+                    res.url().includes("addtocart") &&
+                    res.request().method() === "POST" &&
+                    res.status() === 200,
+                { timeout: 15000 },
+            )
+            .catch(() => null);
+
         const dialogPromise = new Promise<void>((resolve) => {
             this.page.once("dialog", async (dialog) => {
                 if (!handled) {
@@ -53,6 +63,7 @@ export class ProductPage extends BasePage {
 
         // Wait for expected alert
         await dialogPromise;
+        await addToCartResponse;
 
         // Try to catch an optional 2nd alert (Nokia bug)
         try {
