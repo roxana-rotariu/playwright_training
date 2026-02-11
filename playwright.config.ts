@@ -48,7 +48,7 @@ export default defineConfig({
         },
         {
             name: "ui-regression",
-            testMatch: ["tests/ui/*.spec.ts"],
+            testMatch: ["tests/ui/*.spec.ts", "tests/ui/**/*.spec.ts", "tests/hybrid/**/*.spec.ts"],
             grepInvert: /mock/i,
             workers: 1,
         },

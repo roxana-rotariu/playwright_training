@@ -8,6 +8,7 @@ import { OrderModalPage } from "../pages/OrderModalPage";
 import { LoginPage } from "../pages/LoginPage";
 import { CheckoutFlow } from "../flows/CheckoutFlow";
 import { AllureHelper } from "../utils/allureHelper";
+import { DemoblazeClient } from "../services/demoblazeClient";
 
 export type MyFixtures = {
     homePage: HomePage;
@@ -17,9 +18,14 @@ export type MyFixtures = {
     orderModalPage: OrderModalPage;
     loginPage: LoginPage;
     checkoutFlow: CheckoutFlow;
+    apiClient: DemoblazeClient;
 };
 
 export const test = base.extend<MyFixtures>({
+    apiClient: async ({ request }, use) => {
+        const client = new DemoblazeClient(request);
+        await use(client);
+    },
     homePage: async ({ page }, use) => {
         await use(new HomePage(page));
     },
@@ -66,7 +72,6 @@ export const test = base.extend<MyFixtures>({
  * - Allows Demoblaze grid re-render cycles
  */
 test.beforeEach(async ({ page, homePage, loginPage }) => {
-
     // 1️⃣ Navigate to clean homepage (component-safe)
     await homePage.gotoHome();
 
@@ -106,7 +111,6 @@ test.beforeEach(async ({ page, homePage, loginPage }) => {
  * Attach Allure artifacts (screenshot, video, trace)
  */
 test.afterEach(async ({ page }, testInfo) => {
-
     if (testInfo.status !== "passed") {
         await AllureHelper.attachScreenshot(page, testInfo);
     }

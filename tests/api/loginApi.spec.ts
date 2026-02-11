@@ -7,9 +7,12 @@ test.describe("Login API", () => {
     const response = await api.post("https://api.demoblaze.com/login", {
       data: {
         username: "test",      // or a known user
-        password: "test"
+        password: Buffer.from("test").toString("base64")
       }
     });
+    
+    // Log the response body for debugging
+    console.log("Response body:", await response.text());
 
     expect(response.status()).toBe(200);
 
