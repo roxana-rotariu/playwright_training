@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from "@playwright/test";
+import { Page, Locator } from "@playwright/test";
 
 export class Sidebar {
 
@@ -47,6 +47,15 @@ export class Sidebar {
 
     // Ensure sidebar is visible
     await this.waitForLoad();
+    const categoryApi = this.getCategoryApiValue(category);
+    const waitForCategory = this.page.waitForResponse((response) => {
+      const request = response.request();
+      if (!response.url().includes("bycat") || request.method() !== "POST") {
+        return false;
+      }
+      const postData = request.postData() ?? "";
+      return postData.includes(categoryApi);
+    }).catch(() => null);
 
     switch (category) {
       case "Phones":
@@ -60,13 +69,9 @@ export class Sidebar {
         break;
     }
 
-    // After clicking, wait for grid to refresh
+    // After clicking, wait for category response (best signal)
+    await waitForCategory;
     await this.page.locator(".hrefch").first().waitFor({ timeout: 15000 });
-
-    // Reset pagination if visible
-    if (await this.prevBtn.isVisible().catch(() => false)) {
-      await this.prevBtn.click();
-    }
   }
 
   // ---------------------------
@@ -84,6 +89,17 @@ export class Sidebar {
     if (await this.prevBtn.isVisible()) {
       await this.prevBtn.click();
       await this.page.waitForLoadState("domcontentloaded");
+    }
+  }
+
+  private getCategoryApiValue(category: "Phones" | "Laptops" | "Monitors"): string {
+    switch (category) {
+      case "Phones":
+        return "phone";
+      case "Laptops":
+        return "notebook";
+      case "Monitors":
+        return "monitor";
     }
   }
 }

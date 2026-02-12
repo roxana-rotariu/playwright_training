@@ -84,7 +84,7 @@ export const test = base.extend<MyFixtures>({
  * - Ensures page=1
  * - Allows Demoblaze grid re-render cycles
  */
-test.beforeEach(async ({ page, homePage, loginPage }) => {
+test.beforeEach(async ({ page, homePage, loginPage, catalogPage }) => {
     // 1) Navigate to clean homepage (component-safe)
     await homePage.gotoHome();
 
@@ -97,19 +97,12 @@ test.beforeEach(async ({ page, homePage, loginPage }) => {
     }
 
     // 4) CRITICAL FIX: Reset Phones category for EVERY TEST
-    const phonesLink = page.getByRole("link", { name: "Phones" });
-
-    await phonesLink.click(); // triggers category load
-
-    // Wait for first product tile
-    const firstTile = page.locator(".hrefch").first();
     try {
-        await firstTile.waitFor({ timeout: 20000 });
+        await catalogPage.filterCategory("Phones");
     } catch {
         if (page.isClosed()) return;
         await page.reload();
-        await phonesLink.click();
-        await firstTile.waitFor({ timeout: 20000 });
+        await catalogPage.filterCategory("Phones");
     }
 
     // Wait for Demoblaze grid re-render cycles (CI fix)
@@ -117,14 +110,6 @@ test.beforeEach(async ({ page, homePage, loginPage }) => {
     await page.waitForTimeout(300);
     await page.waitForTimeout(300);
     await page.waitForTimeout(300);
-
-    // 5) Ensure we reset to page 1 (pagination fix)
-    const prevBtn = page.locator("#prev2");
-    if (!page.isClosed() && await prevBtn.isVisible().catch(() => false)) {
-        await prevBtn.click();
-        await page.waitForLoadState("domcontentloaded");
-        await page.waitForTimeout(300);
-    }
 });
 
 /**
