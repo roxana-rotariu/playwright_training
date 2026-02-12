@@ -64,13 +64,11 @@ test.describe("Visual Regression – Cart Page", () => {
       await cartPage.gotoCart();
     });
 
-    const mask = [
-      page.locator("footer")
-    ];
-
     await AllureHelper.step("Capture snapshot", async () => {
       await page.waitForTimeout(200);
-      expect(await page.screenshot({ animations: "disabled", mask }))
+      await cartPage.table.waitForLoad();
+      const cartContent = page.locator("#page-wrapper");
+      expect(await cartContent.screenshot({ animations: "disabled" }))
         .toMatchSnapshot("cart-with-samsung.png", { maxDiffPixels: 25 });
     });
   });
