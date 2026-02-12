@@ -19,3 +19,7 @@ docs/
 .DS_Store
 .vscode/
 .idea/
+
+# Allow Playwright visual snapshots
+!tests/ui/visuals/**-snapshots/
+!tests/ui/visuals/**-snapshots/*.png
