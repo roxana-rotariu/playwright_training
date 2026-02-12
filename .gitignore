@@ -23,3 +23,4 @@ docs/
 # Allow Playwright visual snapshots
 !tests/ui/visuals/**-snapshots/
 !tests/ui/visuals/**-snapshots/*.png
+.allai/workspace.db

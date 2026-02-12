@@ -7,6 +7,7 @@ import { CartPage } from "../pages/CartPage";
 import { OrderModalPage } from "../pages/OrderModalPage";
 import { LoginPage } from "../pages/LoginPage";
 import { CheckoutFlow } from "../flows/CheckoutFlow";
+import { HappyPathFlow } from "../flows/HappyPathFlow";
 import { AllureHelper } from "../utils/allureHelper";
 import { DemoblazeClient } from "../services/demoblazeClient";
 
@@ -18,6 +19,7 @@ export type MyFixtures = {
     orderModalPage: OrderModalPage;
     loginPage: LoginPage;
     checkoutFlow: CheckoutFlow;
+    happyPathFlow: HappyPathFlow;
     apiClient: DemoblazeClient;
 };
 
@@ -61,33 +63,40 @@ export const test = base.extend<MyFixtures>({
         );
         await use(flow);
     },
+    happyPathFlow: async (
+        { homePage, loginPage, checkoutFlow },
+        use,
+    ) => {
+        const flow = new HappyPathFlow(homePage, loginPage, checkoutFlow);
+        await use(flow);
+    },
 });
 
 /**
- * ⭐ GLOBAL BEFORE EACH
+ * GLOBAL BEFORE EACH
  * Ensures every UI test starts in a deterministic, clean, stable state.
  *
  * This includes:
  * - Fresh homepage load
  * - Navbar init
  * - Logout if needed
- * - ⭐ RESET GRID TO PHONES CATEGORY (fixes Samsung flakiness)
+ * - RESET GRID TO PHONES CATEGORY (fixes Samsung flakiness)
  * - Ensures page=1
  * - Allows Demoblaze grid re-render cycles
  */
 test.beforeEach(async ({ page, homePage, loginPage }) => {
-    // 1️⃣ Navigate to clean homepage (component-safe)
+    // 1) Navigate to clean homepage (component-safe)
     await homePage.gotoHome();
 
-    // 2️⃣ Ensure navbar is visible (critical)
+    // 2) Ensure navbar is visible (critical)
     await page.locator("#navbarExample").waitFor({ timeout: 15000 });
 
-    // 3️⃣ Logout if previous test left user logged in
+    // 3) Logout if previous test left user logged in
     if (await loginPage.isLoggedIn()) {
         await loginPage.logout();
     }
 
-    // 4️⃣ ⭐ CRITICAL FIX: Reset Phones category for EVERY TEST
+    // 4) CRITICAL FIX: Reset Phones category for EVERY TEST
     const phonesLink = page.getByRole("link", { name: "Phones" });
 
     await phonesLink.click(); // triggers category load
@@ -109,7 +118,7 @@ test.beforeEach(async ({ page, homePage, loginPage }) => {
     await page.waitForTimeout(300);
     await page.waitForTimeout(300);
 
-    // 5️⃣ Ensure we reset to page 1 (pagination fix)
+    // 5) Ensure we reset to page 1 (pagination fix)
     const prevBtn = page.locator("#prev2");
     if (!page.isClosed() && await prevBtn.isVisible().catch(() => false)) {
         await prevBtn.click();
@@ -119,7 +128,7 @@ test.beforeEach(async ({ page, homePage, loginPage }) => {
 });
 
 /**
- * ⭐ GLOBAL AFTER EACH
+ * GLOBAL AFTER EACH
  * Attach Allure artifacts (screenshot, video, trace)
  */
 test.afterEach(async ({ page }, testInfo) => {
@@ -133,3 +142,4 @@ test.afterEach(async ({ page }, testInfo) => {
 
 // Export expect
 export { expect };
+
