@@ -1,11 +1,19 @@
 name: Playwright Tests
 
 on:
-  workflow_dispatch:   # manual trigger → used later for snapshot updates
+  workflow_dispatch:
+    inputs:
+      update_snapshots:
+        description: "Update Linux visual snapshots and commit"
+        required: false
+        default: "false"
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+
+permissions:
+  contents: write
 
 jobs:
 
@@ -25,14 +33,14 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
       - name: Run Playwright Tests (Stage)
         run: |
-          npx cross-env TEST_ENV=stage npx playwright test --project=ui-regression
+          TEST_ENV=stage npx playwright test --project=ui-regression
 
       - name: Upload Test Report
         if: always()
@@ -46,8 +54,8 @@ jobs:
   #  MANUAL SNAPSHOT UPDATE
   # -------------------------
   update-snapshots:
-    # Only run this job when manually triggered
-    if: github.event_name == 'workflow_dispatch'
+    # Only run this job when manually triggered with update_snapshots=true
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.update_snapshots == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -60,19 +68,23 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
       - name: Update Linux Snapshots
         run: |
-          npx cross-env TEST_ENV=stage npx playwright test --update-snapshots --project=ui-regression
+          TEST_ENV=stage npx playwright test --update-snapshots --project=ui-regression --grep "@visual"
 
       - name: Commit snapshot updates
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add .
-          git commit -m "Update Linux snapshots" || echo "No changes to commit"
-          git push
+          if [ -n "$(git status --porcelain)" ]; then
+            git add tests/ui/visuals
+            git commit -m "Update Linux snapshots"
+            git push
+          else
+            echo "No changes to commit"
+          fi
