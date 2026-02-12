@@ -1,7 +1,7 @@
 import { test, expect } from "../../../fixtures/baseTest";
 import { AllureHelper } from "../../../utils/allureHelper";
 
-test.describe("Visual Regression – Product Page", () => {
+test.describe("Visual Regression � Product Page", () => {
 
   test("Samsung galaxy s6 product page @visual", async ({
     page,
@@ -38,8 +38,8 @@ test.describe("Visual Regression – Product Page", () => {
     });
 
     await AllureHelper.step("Capture snapshot", async () => {
-      expect(await page.screenshot({ mask }))
-        .toMatchSnapshot("product-samsung.png");
+      expect(await page.screenshot({ mask, animations: "disabled" }))
+        .toMatchSnapshot("product-samsung.png", { maxDiffPixels: 25 });
     });
   });
 

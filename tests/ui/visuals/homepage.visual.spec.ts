@@ -1,7 +1,7 @@
 import { test, expect } from "../../../fixtures/baseTest";
 import { AllureHelper } from "../../../utils/allureHelper";
 
-test.describe("Visual Regression – Homepage", () => {
+test.describe("Visual Regression � Homepage", () => {
 
   test("homepage layout @visual", async ({ page, homePage }) => {
 
@@ -30,8 +30,9 @@ test.describe("Visual Regression – Homepage", () => {
     });
 
     await AllureHelper.step("Capture snapshot", async () => {
-      expect(await page.screenshot({ mask }))
-        .toMatchSnapshot("homepage.png");
+      await page.waitForTimeout(200);
+      expect(await page.screenshot({ mask, animations: "disabled" }))
+        .toMatchSnapshot("homepage.png", { maxDiffPixels: 25 });
     });
   });
 

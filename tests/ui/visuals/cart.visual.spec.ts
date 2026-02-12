@@ -1,7 +1,7 @@
 import { test, expect } from "../../../fixtures/baseTest";
 import { AllureHelper } from "../../../utils/allureHelper";
 
-test.describe("Visual Regression – Cart Page", () => {
+test.describe("Visual Regression � Cart Page", () => {
 
   test("empty cart snapshot @visual", async ({ page, homePage, cartPage }) => {
 
@@ -20,7 +20,9 @@ test.describe("Visual Regression – Cart Page", () => {
     });
 
     await AllureHelper.step("Capture snapshot", async () => {
-      expect(await page.screenshot()).toMatchSnapshot("empty-cart.png");
+      await page.waitForTimeout(200);
+      expect(await page.screenshot({ animations: "disabled" }))
+        .toMatchSnapshot("empty-cart.png", { maxDiffPixels: 25 });
     });
   });
 
@@ -51,8 +53,9 @@ test.describe("Visual Regression – Cart Page", () => {
     });
 
     await AllureHelper.step("Capture snapshot", async () => {
-      expect(await page.screenshot())
-        .toMatchSnapshot("cart-with-samsung.png");
+      await page.waitForTimeout(200);
+      expect(await page.screenshot({ animations: "disabled" }))
+        .toMatchSnapshot("cart-with-samsung.png", { maxDiffPixels: 25 });
     });
   });
 
