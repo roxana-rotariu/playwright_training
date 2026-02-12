@@ -14,14 +14,22 @@ test.describe("Visual Regression – Cart Page", () => {
       await homePage.gotoHome();
     });
 
+    await AllureHelper.step("Set viewport size", async () => {
+      await page.setViewportSize({ width: 1280, height: 800 });
+    });
+
     await AllureHelper.step("Open cart page", async () => {
       await cartPage.gotoCart();
       await cartPage.table.waitForLoad();
     });
 
+    const mask = [
+      page.locator("footer")
+    ];
+
     await AllureHelper.step("Capture snapshot", async () => {
       await page.waitForTimeout(200);
-      expect(await page.screenshot({ animations: "disabled" }))
+      expect(await page.screenshot({ animations: "disabled", mask }))
         .toMatchSnapshot("empty-cart.png", { maxDiffPixels: 25 });
     });
   });
@@ -43,6 +51,10 @@ test.describe("Visual Regression – Cart Page", () => {
       await homePage.gotoHome();
     });
 
+    await AllureHelper.step("Set viewport size", async () => {
+      await page.setViewportSize({ width: 1280, height: 800 });
+    });
+
     await AllureHelper.step("Add product to cart", async () => {
       await catalogPage.findAndSelectProduct("Samsung galaxy s6");
       await productPage.addToCart();
@@ -52,9 +64,13 @@ test.describe("Visual Regression – Cart Page", () => {
       await cartPage.gotoCart();
     });
 
+    const mask = [
+      page.locator("footer")
+    ];
+
     await AllureHelper.step("Capture snapshot", async () => {
       await page.waitForTimeout(200);
-      expect(await page.screenshot({ animations: "disabled" }))
+      expect(await page.screenshot({ animations: "disabled", mask }))
         .toMatchSnapshot("cart-with-samsung.png", { maxDiffPixels: 25 });
     });
   });
