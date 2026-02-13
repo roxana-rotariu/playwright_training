@@ -1,0 +1,10 @@
+signup response: 
+raw login response: "Auth_token: dGVzdF8xNzcwOTc0NzkxMjgyMTc3MTU3NA=="
+
+addToCart payload: {
+  id: 'df852b68-0b97-439d-b695-c14cfc6b713a',
+  cookie: 'user=dGVzdF8xNzcwOTc0NzkxMjgyMTc3MTU3NA==',
+  prod_id: 1,
+  flag: false
+}
+addToCart response: { success: true, raw: '' }

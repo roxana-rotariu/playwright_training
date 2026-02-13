@@ -1,0 +1,3 @@
+signup response: 
+raw login response: "Auth_token: dGVzdF8xNzcwOTc0NzkzMDE5MTc3MTU3NA=="
+
