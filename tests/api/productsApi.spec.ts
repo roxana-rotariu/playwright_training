@@ -10,7 +10,7 @@ test.describe("Products API", () => {
     AllureHelper.severity("normal");
 
     const response = await AllureHelper.step("Send products request", async () => {
-      return await api.get("https://api.demoblaze.com/entries");
+      return await api.get("/entries");
     });
 
     await AllureHelper.step("Verify response status", async () => {

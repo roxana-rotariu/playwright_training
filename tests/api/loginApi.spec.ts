@@ -7,14 +7,17 @@ test.describe("Login API", () => {
 
     AllureHelper.epic("API");
     AllureHelper.feature("Login API");
-    AllureHelper.story("Login returns token or error");
-    AllureHelper.severity("normal");
+  AllureHelper.story("Login returns token or error");
+  AllureHelper.severity("normal");
+
+    const username = process.env.TEST_USER ?? "test";
+    const password = process.env.TEST_PASS ?? "test";
 
     const response = await AllureHelper.step("Send login request", async () => {
-      return await api.post("https://api.demoblaze.com/login", {
+      return await api.post("/login", {
         data: {
-          username: "test",
-          password: Buffer.from("test").toString("base64")
+          username,
+          password: Buffer.from(password).toString("base64")
         }
       });
     });

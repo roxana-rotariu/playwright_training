@@ -11,7 +11,7 @@ test.describe("Cart API", () => {
     AllureHelper.severity("normal");
 
     const response = await AllureHelper.step("Send add to cart request", async () => {
-      return await api.post("https://api.demoblaze.com/addtocart", {
+      return await api.post("/addtocart", {
         data: {
           id: "1234",
           cookie: "invalid-cookie",

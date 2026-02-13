@@ -1,10 +1,15 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../../fixtures/baseTest";
 import { IdHelper } from "../../utils/idHelper";
 import { AllureHelper } from "../../utils/allureHelper";
+import { ENV, EnvName } from "../../config/environments";
 
 test.describe("Mocked Products API", () => {
 
   test("mock products list", async ({ page }) => {
+    const env = (process.env.TEST_ENV as EnvName) || "dev";
+    const validEnvs: EnvName[] = ["dev", "stage", "prod"];
+    const envName: EnvName = validEnvs.includes(env) ? env : "dev";
+    const entriesUrl = new URL("/entries", ENV[envName].apiBaseURL).toString();
 
     AllureHelper.epic("Mocking");
     AllureHelper.feature("Mocked products API");
@@ -34,7 +39,7 @@ test.describe("Mocked Products API", () => {
     };
 
     await AllureHelper.step("Mock products API response", async () => {
-      await page.route("https://api.demoblaze.com/entries", async (route, request) => {
+      await page.route(entriesUrl, async (route, request) => {
         if (request.method() !== "GET") {
           return route.continue();
         }
@@ -54,7 +59,7 @@ test.describe("Mocked Products API", () => {
     await AllureHelper.step("Open homepage", async () => {
       const responsePromise = page.waitForResponse(
         (res) =>
-          res.url() === "https://api.demoblaze.com/entries" &&
+          res.url() === entriesUrl &&
           res.request().method() === "GET"
       );
       await page.goto("https://www.demoblaze.com/");
@@ -71,6 +76,10 @@ test.describe("Mocked Products API", () => {
   });
 
   test("simulate API failure", async ({ page }) => {
+    const env = (process.env.TEST_ENV as EnvName) || "dev";
+    const validEnvs: EnvName[] = ["dev", "stage", "prod"];
+    const envName: EnvName = validEnvs.includes(env) ? env : "dev";
+    const entriesUrl = new URL("/entries", ENV[envName].apiBaseURL).toString();
 
     AllureHelper.epic("Mocking");
     AllureHelper.feature("Mocked products API");
@@ -78,7 +87,7 @@ test.describe("Mocked Products API", () => {
     AllureHelper.severity("normal");
 
     await AllureHelper.step("Mock products API failure", async () => {
-      await page.route("https://api.demoblaze.com/entries", async (route) => {
+      await page.route(entriesUrl, async (route) => {
         await route.fulfill({
           status: 500,
           contentType: "application/json",
@@ -90,7 +99,7 @@ test.describe("Mocked Products API", () => {
     await AllureHelper.step("Open homepage", async () => {
       const responsePromise = page.waitForResponse(
         (res) =>
-          res.url() === "https://api.demoblaze.com/entries" &&
+          res.url() === entriesUrl &&
           res.status() === 500
       );
       await page.goto("https://www.demoblaze.com/");

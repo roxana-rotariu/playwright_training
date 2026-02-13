@@ -1,9 +1,11 @@
-import { test, expect } from "../../../fixtures/baseTest";
+ï»¿import { test, expect } from "../../../fixtures/baseTest";
 import { AllureHelper } from "../../../utils/allureHelper";
 
-test.describe("Visual Regression – Phones Grid", () => {
+test.use({ viewport: { width: 1280, height: 720 } });
 
-  test("phones grid snapshot @visual", async ({ page, homePage }) => {
+test.describe("Visual Regression â€“ Phones Grid", () => {
+
+  test("phones grid snapshot @visual", async ({ page, homePage, catalogPage }) => {
 
     AllureHelper.epic("Visual Regression");
     AllureHelper.feature("Catalog");
@@ -15,16 +17,17 @@ test.describe("Visual Regression – Phones Grid", () => {
     });
 
     await AllureHelper.step("Open Phones category", async () => {
-      await page.getByRole("link", { name: "Phones" }).click();
-      await page.locator(".hrefch").first().waitFor();
-      await page.waitForTimeout(300);
+      await catalogPage.filterCategory("Phones");
     });
 
     await AllureHelper.step("Capture snapshot", async () => {
-      await page.waitForTimeout(200);
       expect(await page.screenshot({ animations: "disabled" }))
         .toMatchSnapshot("phones-grid.png", { maxDiffPixels: 25 });
     });
   });
 
 });
+
+
+
+

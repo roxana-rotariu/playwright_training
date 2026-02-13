@@ -14,7 +14,7 @@ test.describe("User API", () => {
     const password = DataHelper.randomPassword(10);
 
     const response = await AllureHelper.step("Send signup request", async () => {
-      return await api.post("https://api.demoblaze.com/signup", {
+      return await api.post("/signup", {
         data: {
           username,
           password

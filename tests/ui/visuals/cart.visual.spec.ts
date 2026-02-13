@@ -1,7 +1,9 @@
-import { test, expect } from "../../../fixtures/baseTest";
+ï»¿import { test, expect } from "../../../fixtures/baseTest";
 import { AllureHelper } from "../../../utils/allureHelper";
 
-test.describe("Visual Regression – Cart Page", () => {
+test.use({ viewport: { width: 1280, height: 720 } });
+
+test.describe("Visual Regression â€“ Cart Page", () => {
 
   test("empty cart snapshot @visual", async ({ page, homePage, cartPage }) => {
 
@@ -14,10 +16,6 @@ test.describe("Visual Regression – Cart Page", () => {
       await homePage.gotoHome();
     });
 
-    await AllureHelper.step("Set viewport size", async () => {
-      await page.setViewportSize({ width: 1280, height: 800 });
-    });
-
     await AllureHelper.step("Open cart page", async () => {
       await cartPage.gotoCart();
       await cartPage.table.waitForLoad();
@@ -28,7 +26,6 @@ test.describe("Visual Regression – Cart Page", () => {
     ];
 
     await AllureHelper.step("Capture snapshot", async () => {
-      await page.waitForTimeout(200);
       expect(await page.screenshot({ animations: "disabled", mask }))
         .toMatchSnapshot("empty-cart.png", { maxDiffPixels: 25 });
     });
@@ -51,11 +48,8 @@ test.describe("Visual Regression – Cart Page", () => {
       await homePage.gotoHome();
     });
 
-    await AllureHelper.step("Set viewport size", async () => {
-      await page.setViewportSize({ width: 1280, height: 800 });
-    });
-
     await AllureHelper.step("Add product to cart", async () => {
+      await catalogPage.filterCategory("Phones");
       await catalogPage.findAndSelectProduct("Samsung galaxy s6");
       await productPage.addToCart();
     });
@@ -65,12 +59,14 @@ test.describe("Visual Regression – Cart Page", () => {
     });
 
     await AllureHelper.step("Capture snapshot", async () => {
-      await page.waitForTimeout(200);
       await cartPage.table.waitForLoad();
-      const cartBody = cartPage.table.tableBody;
-      expect(await cartBody.screenshot({ animations: "disabled" }))
+      expect(await page.screenshot({ animations: "disabled" }))
         .toMatchSnapshot("cart-with-samsung.png", { maxDiffPixels: 25 });
     });
   });
 
 });
+
+
+
+

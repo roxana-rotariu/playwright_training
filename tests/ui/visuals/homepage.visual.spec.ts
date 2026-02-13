@@ -1,9 +1,11 @@
-import { test, expect } from "../../../fixtures/baseTest";
+ï»¿import { test, expect } from "../../../fixtures/baseTest";
 import { AllureHelper } from "../../../utils/allureHelper";
 
-test.describe("Visual Regression – Homepage", () => {
+test.use({ viewport: { width: 1280, height: 720 } });
 
-  test("homepage layout @visual", async ({ page, homePage }) => {
+test.describe("Visual Regression â€“ Homepage", () => {
+
+  test("homepage layout @visual", async ({ page, homePage, catalogPage }) => {
 
     AllureHelper.epic("Visual Regression");
     AllureHelper.feature("Homepage");
@@ -14,10 +16,6 @@ test.describe("Visual Regression – Homepage", () => {
       await homePage.gotoHome();
     });
 
-    await AllureHelper.step("Set viewport size", async () => {
-      await page.setViewportSize({ width: 1280, height: 800 });
-    });
-
     // Mask dynamic elements
     const mask = [
       page.locator("#carouselExampleIndicators"),
@@ -25,15 +23,17 @@ test.describe("Visual Regression – Homepage", () => {
     ];
 
     await AllureHelper.step("Wait for product grid", async () => {
-      await page.locator(".hrefch").first().waitFor();
-      await page.waitForTimeout(300);
+      await catalogPage.grid.waitForLoad();
     });
 
     await AllureHelper.step("Capture snapshot", async () => {
-      await page.waitForTimeout(200);
       expect(await page.screenshot({ mask, animations: "disabled" }))
         .toMatchSnapshot("homepage.png", { maxDiffPixels: 25 });
     });
   });
 
 });
+
+
+
+

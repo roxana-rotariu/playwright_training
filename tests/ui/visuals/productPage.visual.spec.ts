@@ -1,7 +1,9 @@
-import { test, expect } from "../../../fixtures/baseTest";
+ï»¿import { test, expect } from "../../../fixtures/baseTest";
 import { AllureHelper } from "../../../utils/allureHelper";
 
-test.describe("Visual Regression – Product Page", () => {
+test.use({ viewport: { width: 1280, height: 720 } });
+
+test.describe("Visual Regression â€“ Product Page", () => {
 
   test("Samsung galaxy s6 product page @visual", async ({
     page,
@@ -19,11 +21,8 @@ test.describe("Visual Regression – Product Page", () => {
       await homePage.gotoHome();
     });
 
-    await AllureHelper.step("Set viewport size", async () => {
-      await page.setViewportSize({ width: 1280, height: 800 });
-    });
-
     await AllureHelper.step("Open product page", async () => {
+      await catalogPage.filterCategory("Phones");
       await catalogPage.findAndSelectProduct("Samsung galaxy s6");
       await productPage.waitForProductPage();
     });
@@ -33,10 +32,6 @@ test.describe("Visual Regression – Product Page", () => {
       page.locator("footer")
     ];
 
-    await AllureHelper.step("Stabilize layout", async () => {
-      await page.waitForTimeout(200);
-    });
-
     await AllureHelper.step("Capture snapshot", async () => {
       expect(await page.screenshot({ mask, animations: "disabled" }))
         .toMatchSnapshot("product-samsung.png", { maxDiffPixels: 25 });
@@ -44,3 +39,7 @@ test.describe("Visual Regression – Product Page", () => {
   });
 
 });
+
+
+
+

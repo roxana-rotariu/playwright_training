@@ -10,6 +10,7 @@ import { CheckoutFlow } from "../flows/CheckoutFlow";
 import { HappyPathFlow } from "../flows/HappyPathFlow";
 import { AllureHelper } from "../utils/allureHelper";
 import { DemoblazeClient } from "../services/demoblazeClient";
+import { ENV, EnvName } from "../config/environments";
 
 export type MyFixtures = {
     homePage: HomePage;
@@ -25,10 +26,15 @@ export type MyFixtures = {
 
 export const test = base.extend<MyFixtures>({
     apiClient: async ({ request }, use) => {
+        const env = (process.env.TEST_ENV as EnvName) || "dev";
+        const validEnvs: EnvName[] = ["dev", "stage", "prod"];
+        const envName: EnvName = validEnvs.includes(env) ? env : "dev";
+
         const context = await apiRequest.newContext({
             timeout: 30_000,
+            baseURL: ENV[envName].apiBaseURL,
         });
-        const client = new DemoblazeClient(context);
+        const client = new DemoblazeClient(context, ENV[envName].apiBaseURL);
         await use(client);
         await context.dispose();
     },
@@ -84,15 +90,15 @@ export const test = base.extend<MyFixtures>({
  * - Ensures page=1
  * - Allows Demoblaze grid re-render cycles
  */
-test.beforeEach(async ({ page, homePage, loginPage, catalogPage }) => {
+test.beforeEach(async ({ page, homePage, loginPage, catalogPage }, testInfo) => {
     // 1) Navigate to clean homepage (component-safe)
     await homePage.gotoHome();
 
     // 2) Ensure navbar is visible (critical)
     await page.locator("#navbarExample").waitFor({ timeout: 15000 });
 
-    // 3) Logout if previous test left user logged in
-    if (await loginPage.isLoggedIn()) {
+    // 3) Logout if previous test left user logged in (skip for ui-auth project)
+    if (testInfo.project.name !== "ui-auth" && await loginPage.isLoggedIn()) {
         await loginPage.logout();
     }
 
@@ -105,11 +111,9 @@ test.beforeEach(async ({ page, homePage, loginPage, catalogPage }) => {
         await catalogPage.filterCategory("Phones");
     }
 
-    // Wait for Demoblaze grid re-render cycles (CI fix)
+    // Ensure grid is stable after category switch (CI fix)
     if (page.isClosed()) return;
-    await page.waitForTimeout(300);
-    await page.waitForTimeout(300);
-    await page.waitForTimeout(300);
+    await catalogPage.grid.waitForLoad();
 });
 
 /**

@@ -3,8 +3,14 @@ import type { APIRequestContext, APIResponse } from "@playwright/test";
 import { randomUUID } from "crypto";
 
 export class DemoblazeClient {
-  
-  constructor(private request: APIRequestContext) {}
+  constructor(
+    private request: APIRequestContext,
+    private baseURL: string = "https://api.demoblaze.com/",
+  ) {}
+
+  private buildUrl(path: string): string {
+    return new URL(path, this.baseURL).toString();
+  }
 
   // ----------------------------------------------------------
   // ✔ SAFE JSON PARSER — handles empty, malformed & raw text
@@ -67,7 +73,7 @@ export class DemoblazeClient {
   async signup(username: string, password: string) {
     const encoded = this.encodePassword(password);
 
-    const res = await this.request.post("https://api.demoblaze.com/signup", {
+    const res = await this.request.post(this.buildUrl("/signup"), {
       data: { username, password: encoded }
     });
 
@@ -82,7 +88,7 @@ export class DemoblazeClient {
   async login(username: string, password: string) {
     const encodedPassword = this.encodePassword(password);
 
-    const res = await this.request.post("https://api.demoblaze.com/login", {
+    const res = await this.request.post(this.buildUrl("/login"), {
       data: { username, password: encodedPassword }
     });
 
@@ -105,7 +111,7 @@ export class DemoblazeClient {
   // ✔ PRODUCTS LIST
   // ----------------------------------------------------------
   async getProducts() {
-    const res = await this.request.get("https://api.demoblaze.com/entries");
+    const res = await this.request.get(this.buildUrl("/entries"));
     const json = await this.safeJson(res);
     console.log("Products:", json);
     return json;
@@ -115,7 +121,7 @@ export class DemoblazeClient {
   // ✔ SINGLE PRODUCT
   // ----------------------------------------------------------
   async getProductById(id: number) {
-    const res = await this.request.post("https://api.demoblaze.com/view", {
+    const res = await this.request.post(this.buildUrl("/view"), {
       data: { id }
     });
 
@@ -146,7 +152,7 @@ export class DemoblazeClient {
 
     console.log("addToCart payload:", payload);
 
-    const res = await this.request.post("https://api.demoblaze.com/addtocart", {
+    const res = await this.request.post(this.buildUrl("/addtocart"), {
       data: payload
     });
 
@@ -159,7 +165,7 @@ export class DemoblazeClient {
   // ✔ DELETE CART
   // ----------------------------------------------------------
   async deleteCart(cookie: string) {
-    const res = await this.request.post("https://api.demoblaze.com/deletecart", {
+    const res = await this.request.post(this.buildUrl("/deletecart"), {
       data: { cookie }
     });
 
